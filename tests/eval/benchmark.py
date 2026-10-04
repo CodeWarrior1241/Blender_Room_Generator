@@ -147,8 +147,9 @@ def run(scenes: list[str], modes: list[str], out: Path, write_report: bool = Tru
 
 
 def _report(rows: list[dict], out: Path) -> None:
-    cols = ["scene", "mode", "focal_err_pct", "gravity_err_deg", "yaw_err_deg", "camera_height_err_pct", "ceiling_err_m", "floor_iou",
-            "visible_wall_err_m", "objects_matched", "object_pos_err_m", "object_size_err_pct", "seconds"]
+    cols = ["scene", "mode", "layout_pixel_err_pct", "layout_depth_err_scaled_pct", "focal_err_pct", "gravity_err_deg", "yaw_err_deg",
+            "camera_height_err_pct", "ceiling_err_m", "floor_iou", "visible_wall_err_m", "objects_matched", "object_pos_err_m",
+            "object_size_err_pct", "seconds"]
     lines = [
         "# Synthetic round-trip benchmark",
         "",
@@ -170,6 +171,13 @@ def _report(rows: list[dict], out: Path) -> None:
     lines += [f"- {r['scene']} / {r['mode']}: {r['scale_source']}" for r in rows]
     (Path(__file__).resolve().parent / "REPORT.md").write_text("\n".join(lines) + "\n")
     write_json(out / "benchmark.json", rows)
+
+
+def rewrite_report(out: Path) -> None:
+    """Regenerate REPORT.md from saved rows (after a change to the report layout)."""
+    from room_gen.jsonio import read_json
+
+    _report(read_json(out / "benchmark.json"), out)
 
 
 def main() -> None:

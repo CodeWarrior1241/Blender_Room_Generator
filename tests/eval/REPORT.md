@@ -9,20 +9,20 @@ Metric errors in `auto` and `annotated` include the unknown overall scale unless
 
 Host: Linux-7.0.0-34-generic-x86_64-with-glibc2.39, Python 3.12.3.
 
-| scene | mode | focal_err_pct | rotation_err_deg | camera_height_err_pct | ceiling_err_m | floor_iou | visible_wall_err_m | openings | objects_matched | object_pos_err_m | object_size_err_pct | seconds |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| living-a | auto | 0.09 | 0.323 | 3.4 | 0.059 | 0.862 | 0.147 | 0/3 | 0/7 | None | None | 16.2 |
-| living-a | annotated | 0.09 | 0.323 | 1.7 | 0.012 | 0.892 | 0.062 | 0/3 | 7/7 | 0.068 | 4.0 | 22.8 |
-| living-a | ml | 0.77 | 0.314 | 7.3 | 0.169 | 0.821 | 0.367 | 1/3 | 6/7 | 0.418 | 5.4 | 30.2 |
-| living-b | auto | 0.34 | 0.054 | 6.3 | 0.171 | 0.795 | 0.282 | 0/3 | 0/7 | None | None | 14.1 |
-| living-b | annotated | 0.34 | 0.054 | 0.8 | 0.024 | 0.875 | 0.034 | 0/3 | 6/7 | 0.065 | 4.6 | 19.8 |
-| living-b | ml | 0.19 | 0.051 | 3.5 | 0.089 | 0.851 | 0.142 | 1/3 | 6/7 | 0.254 | 4.6 | 25.6 |
-| bedroom | auto | 0.07 | 0.06 | 0.0 | 0.004 | 0.795 | 0.021 | 0/2 | 0/4 | None | None | 13.6 |
-| bedroom | annotated | 0.07 | 0.06 | 0.0 | 0.004 | 0.795 | 0.021 | 0/2 | 3/4 | 0.323 | 10.9 | 17.5 |
-| bedroom | ml | 0.83 | 0.47 | 7.1 | 0.212 | 0.768 | 0.278 | 2/2 | 3/4 | 0.569 | 10.7 | 24.6 |
-| dining | auto | 0.55 | 0.127 | 9.1 | 0.298 | 0.728 | 0.392 | 0/2 | 0/8 | None | None | 14.4 |
-| dining | annotated | 0.55 | 0.127 | 6.2 | 0.213 | 0.766 | 0.28 | 0/2 | 8/8 | 0.2 | 5.2 | 21.7 |
-| dining | ml | 0.55 | 0.127 | 1.8 | 0.025 | 0.843 | 0.033 | 1/2 | 4/8 | 0.181 | 13.6 | 24.7 |
+| scene | mode | layout_pixel_err_pct | layout_depth_err_scaled_pct | focal_err_pct | gravity_err_deg | yaw_err_deg | camera_height_err_pct | ceiling_err_m | floor_iou | visible_wall_err_m | objects_matched | object_pos_err_m | object_size_err_pct | seconds |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| living-a | auto | 0.4 | 0.4 | 0.09 | 0.323 | 0.02 | 3.4 | 0.059 | 0.861 | 0.147 | 0/7 | None | None | 14.8 |
+| living-a | annotated | 0.4 | 0.4 | 0.09 | 0.323 | 0.02 | 1.7 | 0.012 | 0.892 | 0.062 | 7/7 | 0.068 | 4.0 | 21.1 |
+| living-a | ml | 0.4 | 0.3 | 0.77 | 0.314 | 0.03 | 7.3 | 0.169 | 0.823 | 0.367 | 6/7 | 0.418 | 5.4 | 29.7 |
+| living-b | auto | 0.1 | 0.2 | 0.34 | 0.049 | 0.05 | 6.3 | 0.171 | 0.797 | 0.281 | 0/7 | None | None | 14.1 |
+| living-b | annotated | 0.1 | 0.2 | 0.34 | 0.049 | 0.05 | 0.8 | 0.024 | 0.875 | 0.034 | 6/7 | 0.065 | 4.6 | 19.8 |
+| living-b | ml | 0.2 | 0.2 | 0.19 | 0.047 | 0.04 | 3.5 | 0.089 | 0.85 | 0.143 | 6/7 | 0.254 | 4.6 | 24.5 |
+| bedroom | auto | 0.3 | 0.5 | 0.07 | 0.06 | 0.04 | 0.0 | 0.004 | 0.792 | 0.021 | 0/4 | None | None | 12.9 |
+| bedroom | annotated | 0.3 | 0.5 | 0.07 | 0.06 | 0.04 | 0.0 | 0.004 | 0.792 | 0.021 | 3/4 | 0.324 | 10.9 | 17.4 |
+| bedroom | ml | 0.8 | 0.2 | 0.83 | 0.47 | 0.06 | 7.1 | 0.212 | 0.766 | 0.277 | 3/4 | 0.574 | 10.7 | 23.1 |
+| dining | auto | 0.8 | 1.0 | 0.55 | 0.079 | 0.11 | 9.1 | 0.298 | 0.731 | 0.269 | 0/8 | None | None | 14.3 |
+| dining | annotated | 0.8 | 1.0 | 0.55 | 0.079 | 0.11 | 6.2 | 0.213 | 0.765 | 0.191 | 8/8 | 0.2 | 5.2 | 21.8 |
+| dining | ml | 0.8 | 1.0 | 0.55 | 0.079 | 0.11 | 1.8 | 0.025 | 0.844 | 0.029 | 4/8 | 0.177 | 11.7 | 24.8 |
 
 Scale sources:
 

@@ -207,24 +207,110 @@ def annotations_from_truth(truth: dict, world_slug: str, image_rel: str) -> dict
             "provenance": {"by": "human", "tool": "sunrgbd-truth", "confidence": 1.0}}
 
 
-def twin_scene(truth: dict) -> tuple[dict, list[dict]]:
-    """Room spec and objects of the ground truth, for rendering a 'twin' of the photo."""
-    poly = truth["floor_polygon"]
+def _hex(rgb) -> str:
+    return "#%02x%02x%02x" % tuple(int(np.clip(round(float(c)), 0, 255)) for c in rgb)
+
+
+def twin_polygon(truth: dict) -> list:
+    """Layout polygon for rendering: the camera-fan vertex is pushed 0.5 m behind the camera
+    (only unseen geometry changes) and a self-crossing layout falls back to its convex hull."""
+    cam = PinholeCamera.from_dict(truth["camera"])
+    poly = np.array(truth["floor_polygon"], float)
+    back = -cam.R[2, :2] / max(np.linalg.norm(cam.R[2, :2]), 1e-9)
+    for i in range(len(poly)):
+        if np.linalg.norm(poly[i] - cam.C[:2]) < 0.3:
+            poly[i] = cam.C[:2] + 0.5 * back
+    if not _is_simple(poly) or signed_area_2d([tuple(p) for p in poly]) <= 0:
+        from scipy.spatial import ConvexHull
+
+        hull = ConvexHull(poly)
+        poly = poly[hull.vertices]  # scipy returns CCW order in 2-D
+    return [[round(float(x), 4), round(float(y), 4)] for x, y in poly]
+
+
+def _is_simple(poly: np.ndarray) -> bool:
+    n = len(poly)
+
+    def cross(o, a, b):
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+    for i in range(n):
+        a, b = poly[i], poly[(i + 1) % n]
+        for j in range(i + 1, n):
+            if abs(i - j) <= 1 or (i == 0 and j == n - 1):
+                continue
+            c, d = poly[j], poly[(j + 1) % n]
+            if cross(a, b, c) * cross(a, b, d) < 0 and cross(c, d, a) * cross(c, d, b) < 0:
+                return False
+    return True
+
+
+def photo_colours(truth: dict, rgb: np.ndarray, poly: list) -> tuple[dict, dict]:
+    """Median photo colour of each layout surface (floor, ceiling, wall i) and of each object's
+    2-D box, so the twin keeps the photo's colour cues."""
+    from tests.eval.scoring import layout_labels, virtual_edges
+
+    cam = PinholeCamera.from_dict(truth["camera"])
+    p = np.array(truth["floor_polygon"], float)
+    _, _, surf, uv = layout_labels(cam, p, truth["ceiling_height"], grid=(140, 105), skip_edges=virtual_edges(p, cam), surfaces=True)
+    h, w = rgb.shape[:2]
+    xi = np.clip(uv[:, 0].astype(int), 0, w - 1)
+    yi = np.clip(uv[:, 1].astype(int), 0, h - 1)
+    colours = rgb[yi, xi].astype(float)
+    in_box = np.zeros(len(uv), bool)
+    for o in truth["objects"]:
+        if o["box2d"]:
+            x0, y0, x1, y1 = o["box2d"]
+            in_box |= (uv[:, 0] >= x0) & (uv[:, 0] <= x1) & (uv[:, 1] >= y0) & (uv[:, 1] <= y1)
+    surfaces = {}
+    for sid in np.unique(surf[surf >= 0]):
+        sel = (surf == sid) & ~in_box
+        if sel.sum() < 15:
+            sel = surf == sid
+        surfaces[int(sid)] = _hex(np.median(colours[sel], axis=0))
+    objects = {}
+    for o in truth["objects"]:
+        if o["box2d"]:
+            x0, y0, x1, y1 = (int(v) for v in o["box2d"])
+            patch = rgb[max(0, y0) : max(y0 + 1, y1), max(0, x0) : max(x0 + 1, x1)].reshape(-1, 3)
+            if len(patch):
+                objects[o["id"]] = _hex(np.median(patch, axis=0))
+    return surfaces, objects
+
+
+def twin_scene(truth: dict, rgb: np.ndarray | None = None) -> tuple[dict, list[dict]]:
+    """Room spec and objects of the ground truth for rendering a 'twin' of the photo. With the
+    photo given, surfaces and objects take its median colours."""
+    poly = twin_polygon(truth)
+    surf, obj_col = photo_colours(truth, rgb, poly) if rgb is not None else ({}, {})
+    walls, mats = [], {
+        "floor_mat": {"base_color": surf.get(0, "#9a7350"), "roughness": 0.55, "procedural": "wood", "scale": 1.2},
+        "ceiling_white": {"base_color": surf.get(1, "#f2f2f0"), "roughness": 0.95},
+        "wall_paint": {"base_color": "#dedad2", "roughness": 0.9},
+    }
+    n_truth = len(truth["floor_polygon"])
+    for i in range(len(poly)):
+        name = "wall_paint"
+        if len(poly) == n_truth and (2 + i) in surf:
+            name = f"wall_{i}"
+            mats[name] = {"base_color": surf[2 + i], "roughness": 0.9}
+        walls.append({"edge": i, "material": name})
     room = {
         "schema_version": 1, "world": "twin",
-        "shell": {"floor_polygon": poly, "ceiling_height": truth["ceiling_height"], "wall_thickness": 0.12,
-                  "walls": [{"edge": i, "material": "wall_paint"} for i in range(len(poly))],
+        "shell": {"floor_polygon": poly, "ceiling_height": truth["ceiling_height"], "wall_thickness": 0.12, "walls": walls,
                   "floor": {"material": "floor_mat"}, "ceiling": {"material": "ceiling_white"}},
-        "materials": {"wall_paint": {"base_color": "#dedad2", "roughness": 0.9},
-                      "floor_mat": {"base_color": "#9a7350", "roughness": 0.55, "procedural": "wood", "scale": 1.2},
-                      "ceiling_white": {"base_color": "#f2f2f0", "roughness": 0.95}},
+        "materials": mats,
         "lighting": {"sun": {"azimuth": 215, "elevation": 40, "strength": 2.0}, "sky": {"strength": 0.8, "color": "#d6dde6"}},
         "placements": [],
     }
+    from room_gen import archetypes as A
+
     objects = []
     for o in truth["objects"]:
         arch = o["archetype"] if o["matched"] else archetypes.FALLBACK
         w, d, h = (max(v, 0.02) for v in o["size"])
         recipe = {"object": o["id"], "archetype": arch, "params": {"width": w, "depth": d, "height": h}}
+        if o["id"] in obj_col:
+            recipe["materials"] = {A.get(arch).slots[0]: {"base_color": obj_col[o["id"]]}}
         objects.append({"id": o["id"], "recipe": recipe, "placement": {"object": o["id"], "position": o["position"], "yaw": o["yaw"]}})
     return room, objects

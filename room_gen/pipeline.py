@@ -213,6 +213,9 @@ def run_auto(world: World, *, ml_mode: str | None = None, device: str | None = N
                 setattr(lay, key, getattr(lay, key) * k_scale)
             scale_source = f"{scale_source}; corrected x{k_scale:.3f} by standard object heights"
             scale_conf = min(0.8, scale_conf + 0.15)
+        from room_gen.vision.layout import contain_camera
+
+        contain_camera(lay, cam)
         offset = np.array([(lay.x0 + lay.x1) / 2, (lay.y0 + lay.y1) / 2])
         cam_room = PinholeCamera(cam.fx, cam.fy, cam.cx, cam.cy, cam.width, cam.height, cam.R, cam.C - np.array([offset[0], offset[1], 0.0]))
         hx, hy = (lay.x1 - lay.x0) / 2, (lay.y1 - lay.y0) / 2

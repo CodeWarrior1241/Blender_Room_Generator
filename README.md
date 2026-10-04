@@ -112,7 +112,9 @@ Each block carries `provenance` (`auto`, `fit`, `human` or `model`). A re-run of
 - **Objects, given good boxes:** placed within 0.07–0.32 m.
 - **With the local models:** camera height within 2–7 %, which is better than assuming an eye height.
 
-Real photos are harder. Tight close-ups, heavy clutter and curtains reaching the floor can mislead the automatic layout. A few annotator clicks or the `room-survey` skill are the fix. Without a known length, absolute scale is an estimate: give one length when it matters.
+Real photos are much harder. On 40 NYU Depth v2 frames with measured ground truth, about a third of the pixels get the wrong room surface, against under 1 % on the synthetic rooms. Renders of the same rooms score about the same, so the difficulty is the scenes themselves: close-up views of partly seen rooms. See `tests/realdata/REPORT.md`.
+
+Tight close-ups, heavy clutter and curtains reaching the floor are the usual ways a photo misleads the automatic layout. A few annotator clicks or the `room-survey` skill are the fix. Without a known length, absolute scale is an estimate: give one length when it matters.
 
 ## Tests
 

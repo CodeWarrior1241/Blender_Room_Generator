@@ -92,7 +92,9 @@ def run_frame(frame: str, mode: str, out: Path) -> dict:
     else:
         twin_png = out / "twins" / f"{frame}.png"
         if not twin_png.is_file():
-            room, objects = sunrgbd.twin_scene(t)
+            from PIL import Image
+
+            room, objects = sunrgbd.twin_scene(t, np.asarray(Image.open(DATA / frame / "image.jpg").convert("RGB")))
             render_room(room, truth.camera, twin_png, objects=objects, samples=32, config=load_config(ROOT))
         _with_exif(twin_png, root / "input" / f"{frame}.jpg", truth.camera)
     ws = Workspace.open(root)
@@ -112,12 +114,26 @@ def run_frame(frame: str, mode: str, out: Path) -> dict:
     return row
 
 
-def rescore_frame(frame: str, mode: str, out: Path) -> dict | None:
-    """Score a saved workspace again (after a scorer change) without re-running the pipeline."""
-    old = {}
+def _previous_rows(out: Path) -> dict:
+    """Earlier results (timings, scale sources) from realdata.json and the run logs."""
+    rows: dict = {}
+    for log in sorted(out.glob("run*.log"), key=lambda p: p.stat().st_mtime):
+        for line in log.read_text().splitlines():
+            if line.startswith("{"):
+                r = json.loads(line)
+                if r.get("seconds") is not None:
+                    rows[(r["frame"], r["mode"])] = r
     saved = out / "realdata.json"
     if saved.is_file():
-        old = {(r["frame"], r["mode"]): r for r in read_json(saved)["rows"]}
+        for r in read_json(saved)["rows"]:
+            if r.get("seconds") is not None:
+                rows[(r["frame"], r["mode"])] = r
+    return rows
+
+
+def rescore_frame(frame: str, mode: str, out: Path) -> dict | None:
+    """Score a saved workspace again (after a scorer change) without re-running the pipeline."""
+    old = _previous_rows(out)
     world = Workspace.open(out / f"ws-{frame}-{mode}").world(frame)
     if not world.room_path.is_file():
         return old.get((frame, mode))
@@ -182,6 +198,7 @@ def report(rows: list[dict], out: Path) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--frames", type=int, default=0, help="first N frames of the subset (0 = all)")
+    ap.add_argument("--only", default="", help="comma-separated frame ids to run (others are left as they are)")
     ap.add_argument("--modes", default=",".join(MODES))
     ap.add_argument("--out", default=str(HERE / "out"))
     ap.add_argument("--rescore", action="store_true", help="re-score saved workspaces instead of running the pipeline")
@@ -191,6 +208,8 @@ def main() -> None:
         raise SystemExit("no SUN RGB-D frames found: run `uv run python -m tests.realdata.fetch --accept-license` first")
     if a.frames:
         frames = frames[: a.frames]
+    if a.only:
+        frames = [f for f in frames if f in set(a.only.split(","))]
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     rows = []

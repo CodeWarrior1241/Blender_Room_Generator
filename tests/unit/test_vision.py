@@ -178,3 +178,18 @@ def test_boundary_hints_alone_recover_walls():
     got = dict(zip(("x0", "x1", "y0", "y1", "h"), lay.as_tuple()))
     assert got["y1"] == pytest.approx(ROOM[3], abs=0.1) and got["h"] == pytest.approx(ROOM[4], abs=0.1)
     assert got["x1"] == pytest.approx(ROOM[1], abs=0.15)
+
+
+def test_layout_always_contains_the_camera():
+    """Regression (found on NYU frames): a sideways view showing floor on one side only must not
+    put the unseen wall on the camera's wrong side."""
+    from room_gen.vision.layout import Layout, contain_camera
+
+    cam = _cam(VIEWS[0])
+    lay = Layout(x0=-2.0, x1=-0.4, y0=-1.0, y1=4.0, h=1.2)  # camera at x = 0 lies outside
+    assert contain_camera(lay, cam)
+    assert lay.x0 < 0 < lay.x1 and lay.y0 < 0 < lay.y1 and lay.h > cam.C[2]
+    empty = OrientedEdges(np.zeros((0, 4)), (cam.height, cam.width))
+    side = PinholeCamera.look_at((0.0, 0.0, 1.4), (-4.0, 0.5, 1.0), 640, 480, hfov_deg=60)
+    lay2 = estimate_layout(empty, side, restarts=1)
+    assert lay2.x0 < 0 < lay2.x1 and lay2.y0 < 0 < lay2.y1

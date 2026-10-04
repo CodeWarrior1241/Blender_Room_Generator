@@ -108,7 +108,8 @@ def virtual_edges(poly: np.ndarray, cam: PinholeCamera, radius: float = 0.3) -> 
     return {i for i in range(n) if near[i] or near[(i + 1) % n]}
 
 
-def layout_labels(cam: PinholeCamera, poly: np.ndarray, height: float, grid: tuple[int, int] = (80, 60), skip_edges: set[int] | None = None):
+def layout_labels(cam: PinholeCamera, poly: np.ndarray, height: float, grid: tuple[int, int] = (80, 60), skip_edges: set[int] | None = None,
+                  surfaces: bool = False):
     """Per-pixel surface label (LSUN-style: floor, ceiling, left/front/right wall relative to the
     camera; -1 = ray leaves the room) and ray length to the layout surface, on a coarse grid."""
     gw, gh = grid
@@ -119,13 +120,14 @@ def layout_labels(cam: PinholeCamera, poly: np.ndarray, height: float, grid: tup
     n = len(d)
     best_t = np.full(n, np.inf)
     label = np.full(n, -1)
+    surface = np.full(n, -1)  # 0 floor, 1 ceiling, 2 + i wall i
     with np.errstate(divide="ignore", invalid="ignore"):
         for lab, z in ((0, 0.0), (1, height)):
             t = (z - c[2]) / d[:, 2]
             p = c + d * t[:, None]
             inside = _points_in_poly(p[:, :2], poly)
             ok = (t > 1e-6) & inside & (t < best_t)
-            best_t[ok], label[ok] = t[ok], lab
+            best_t[ok], label[ok], surface[ok] = t[ok], lab, lab
         fwd = cam.R[2, :2] / max(np.linalg.norm(cam.R[2, :2]), 1e-9)
         right = cam.R[0, :2] / max(np.linalg.norm(cam.R[0, :2]), 1e-9)
         for i in range(len(poly)):
@@ -145,8 +147,11 @@ def layout_labels(cam: PinholeCamera, poly: np.ndarray, height: float, grid: tup
             facing = -nrm  # direction the wall lies in, as seen from inside
             ang = math.degrees(math.atan2(float(facing @ right), float(facing @ fwd)))
             lab = 3 if abs(ang) < 45 else (4 if ang > 0 else 2)
-            best_t[ok], label[ok] = t[ok], lab
-    return label, np.where(np.isfinite(best_t), best_t, np.nan)
+            best_t[ok], label[ok], surface[ok] = t[ok], lab, 2 + i
+    depth = np.where(np.isfinite(best_t), best_t, np.nan)
+    if surfaces:
+        return label, depth, surface, uv
+    return label, depth
 
 
 def _points_in_poly(pts: np.ndarray, poly: np.ndarray) -> np.ndarray:

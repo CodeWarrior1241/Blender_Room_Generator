@@ -79,4 +79,5 @@ def test_twin_and_photo_gates(tmp_path):
     assert agg["photo-auto"]["focal_err_pct"] <= GATES["photo_focal"]
 
 
-GATES = {"twin_pixel": 100.0, "photo_pixel": 100.0, "twin_focal": 100.0, "photo_focal": 100.0}  # set from the baseline
+# baseline 2026-10-04 on GATE_FRAMES (medians): photo pixel 39.8 %, twin pixel 41.0 %, photo focal 6.4 %, twin focal 1.35 %
+GATES = {"photo_pixel": 50.0, "twin_pixel": 52.0, "photo_focal": 9.0, "twin_focal": 3.0}

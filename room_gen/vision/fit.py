@@ -42,7 +42,8 @@ def fit_camera_and_room(edges: OrientedEdges, cam: PinholeCamera, layout: dict, 
 
     def objective(x):
         c, room = unpack(x)
-        if room[4] <= c.C[2] + 0.05 or room[0] >= -0.2 + c.C[0] or room[1] <= c.C[0] + 0.2:
+        if (room[4] <= c.C[2] + 0.05 or room[0] >= c.C[0] - 0.2 or room[1] <= c.C[0] + 0.2
+                or room[2] >= c.C[1] - 0.2 or room[3] <= c.C[1] + 0.2):
             return 10.0
         data = soft_value(edges, c, box_room_edges(*room), tau=tau) / vis0
         z = np.concatenate([(x[:4]) / sig_cam, (x[4:] - x0[4:]) / sig_room]) if keys else x[:4] / sig_cam

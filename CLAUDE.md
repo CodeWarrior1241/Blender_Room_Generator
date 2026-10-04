@@ -743,7 +743,10 @@ reconstruction in v1 (curved walls become polyline approximations, low confidenc
 
 - "Claude Mac plan" in the original request is read as the Claude **Max** plan; the spec also
   covers Claude Code inside the Claude desktop app on macOS.
-- **Real photos are harder than the benchmark.** On two public-domain photos the automatic
+- **Real photos are harder than the benchmark.** On 40 NYU frames with measured ground truth the
+  layout pixel error is about 31 % against under 1 % on the synthetic rooms (§17); twin renders
+  of the same frames score about the same, so better single-view layout for partly seen and
+  non-box rooms is the main open problem. On two public-domain photos the automatic
   path was poor: a tight sofa close-up with almost no floor or ceiling, and a cluttered room
   where curtain hems were taken for the wall/floor line. Tier 1/2 (annotator clicks or the
   `room-survey` agent marking floor corners and a reference length) is the intended remedy;
@@ -770,6 +773,23 @@ With Sonnet-drawn boxes the dining room matched the ground-truth result
 (tests/eval/CLAUDE_TIER.md). Typical run times on this host: `auto` 14–30 s (layout ≈ 10 s,
 models ≈ 10 s), `build` 3–10 s. Suites: 150 unit, 5 Blender, 4 model, 4 slow end-to-end
 tests (Python) and 106 annotator tests pass.
+
+Real photos with ground truth (`tests/realdata/REPORT.md`, 40 NYU Depth v2 frames, SUN RGB-D
+labels, medians; photos and their Blender twins both carry the EXIF focal length):
+
+| Mode | Layout pixel err | Layout depth err (raw / scale-corrected) | Focal err | Tilt err | Camera height err |
+|---|---|---|---|---|---|
+| photo, lines only | 31.6 % | 42 % / 28 % | 4.7 % | 0.89° | 24 % |
+| photo, with local models | 31.1 % | 41 % / 32 % | 4.4 % | 0.85° | 21 % |
+| twin render, lines only | 33.1 % | 40 % / 30 % | 1.9 % | 0.37° | 24 % |
+| synthetic benchmark rooms, lines only | 0.1–0.8 % | — / 0.2–1.0 % | ≤ 0.6 % | ≤ 0.3° | 0–9 % |
+
+Reading: calibration is clearly easier on renders, but the layout is about as hard on a twin
+as on its photo, so on NYU-style views the bottleneck is the scene (close-up Kinect frames of
+partly seen, often non-box rooms) rather than photographic appearance. The NYU Kinect was
+held around 1 m high, which the assumed 1.5 m eye height does not fit; object boxes recover
+part of that. These frames found one real bug (unseen walls placed on the wrong side of the
+camera in sideways views), now fixed and covered by a regression test.
 
 Real-photo check (public-domain Wikimedia photos, no ground truth): on a cluttered living
 room the automatic layout took a curtain hem for the wall/floor line (room 12.9 m deep). A

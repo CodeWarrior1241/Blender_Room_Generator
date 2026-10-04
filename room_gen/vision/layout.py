@@ -46,6 +46,19 @@ def _value(edges, cam, p, penalty=0.15) -> float:
     return score(edges, cam, box_room_edges(*p)).value(penalty)
 
 
+def contain_camera(lay: "Layout", cam: PinholeCamera, margin: float = 0.3) -> bool:
+    """Make sure the room contains the camera (and its height). Returns True if anything moved."""
+    cx, cy = float(cam.C[0]), float(cam.C[1])
+    before = lay.as_tuple()
+    lay.x0, lay.x1 = min(lay.x0, cx - margin), max(lay.x1, cx + margin)
+    lay.y0, lay.y1 = min(lay.y0, cy - margin), max(lay.y1, cy + margin)
+    lay.h = max(lay.h, float(cam.C[2]) + 0.1)
+    moved = lay.as_tuple() != before
+    if moved:
+        lay.notes.append("walls moved so the room contains the camera")
+    return moved
+
+
 def visible_floor_extent(cam: PinholeCamera, bounds: dict[str, float] | None = None) -> tuple[float, float, float, float] | None:
     """Bounding box of floor points seen along the image border (below the horizon),
     clipped at walls that are already known (``bounds`` holds any of x0, x1, y0, y1)."""
@@ -269,18 +282,21 @@ def estimate_layout(
                 continue
             # never further than max_unseen metres from the camera: a long floor ray along the
             # image border usually ends at furniture or a wall the lines did not pick up
+            # the camera is inside the room, so an unseen wall is also at least half the
+            # behind-camera distance past it (a sideways view can show floor on one side only)
             if name == "x0":
-                lay.x0 = max(fx0 - 0.3, cxy[0] - max_unseen)
+                lay.x0 = min(max(fx0 - 0.3, cxy[0] - max_unseen), cxy[0] - 0.5 * behind)
             elif name == "x1":
-                lay.x1 = min(fx1 + 0.3, cxy[0] + max_unseen)
+                lay.x1 = max(min(fx1 + 0.3, cxy[0] + max_unseen), cxy[0] + 0.5 * behind)
             elif name == "y1":
-                lay.y1 = min(fy1 + 0.3, cxy[1] + max_unseen)
+                lay.y1 = max(min(fy1 + 0.3, cxy[1] + max_unseen), cxy[1] + 0.5 * behind)
             elif name == "y0":
                 lay.y0 = max(min(cxy[1] - behind, fy0 - 0.3), cxy[1] - max_unseen)
             lay.notes.append(f"wall {wall} ({name}) not visible; placed just beyond the visible floor")
     if not lay.ceiling_visible and "h" not in fixed and not (prior and prior.get("h")):
         lay.h = h_default
         lay.notes.append(f"ceiling not visible; assumed {h_default} m")
+    contain_camera(lay, cam)
     lay.sources = {k: ("annotation" if k in fixed else "prior" if prior and k in prior else "lines") for k in PARAMS}
     seen = [lay.wall_support[w] for w in range(4) if lay.visible[w]]
     lay.confidence = round(float(min(1.0, (np.mean(seen) if seen else 0.0) * 1.2) * (0.5 + 0.125 * len(seen))), 3)
