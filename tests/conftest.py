@@ -29,8 +29,17 @@ def _ml_ready() -> bool:
         return False
 
 
+def _realdata_ready() -> bool:
+    subset = ROOT / "tests" / "realdata" / "nyu_subset.json"
+    if not subset.is_file():
+        return False
+    frames = json.loads(subset.read_text())["frames"]
+    return all((ROOT / "deps" / "sunrgbd" / "nyu" / f["id"] / "truth.json").is_file() for f in frames)
+
+
 BLENDER = _blender()
 ML_READY = _ml_ready()
+REALDATA_READY = _realdata_ready()
 requires_blender = pytest.mark.skipif(BLENDER is None, reason="Blender not installed")
 requires_ml = pytest.mark.skipif(not ML_READY, reason="room_gen[ml] not installed or weights not cached")
 
@@ -41,6 +50,8 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.skip(reason="Blender not installed"))
         if "ml" in item.keywords and not ML_READY:
             item.add_marker(pytest.mark.skip(reason="room_gen[ml] not installed or weights not cached"))
+        if "realdata" in item.keywords and not REALDATA_READY:
+            item.add_marker(pytest.mark.skip(reason="SUN RGB-D data missing: uv run python -m tests.realdata.fetch --accept-license"))
 
 
 @pytest.fixture

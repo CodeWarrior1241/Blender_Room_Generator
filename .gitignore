@@ -236,3 +236,7 @@ tests/eval/out/
 .pytest_cache/
 # the Python template above ignores every lib/ directory; the annotator keeps source there
 !annotator/src/lib/
+# SUN RGB-D / NYU reference data: research-only licence, fetched locally, never committed
+deps/sunrgbd/*
+!deps/sunrgbd/README.md
+tests/realdata/out/

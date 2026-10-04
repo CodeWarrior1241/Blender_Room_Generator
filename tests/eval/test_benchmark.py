@@ -15,7 +15,7 @@ def test_lines_only_reconstruction(tmp_path, scene_name):
 
     (row,) = run([scene_name], ["auto"], tmp_path, write_report=False)
     assert row["focal_err_pct"] < 2.0
-    assert row["rotation_err_deg"] < 0.6
+    assert row["gravity_err_deg"] < 0.6 and row["yaw_err_deg"] < 0.6
     assert row["floor_iou"] > 0.7
     assert row["visible_wall_err_m"] < 0.3
     assert row["ceiling_err_m"] < 0.25

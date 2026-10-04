@@ -31,6 +31,8 @@ from room_gen.jsonio import read_json, write_json
 from room_gen.project import Workspace
 from room_gen.vision.objects import box_corners
 from tests.eval.scenes import SCENES, scene
+from tests.eval.scoring import Truth
+from tests.eval.scoring import score as score_truth
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -87,75 +89,22 @@ def truth_boxes(sc: dict) -> list[dict]:
     return out
 
 
-def _manhattan_align(r_true: np.ndarray, r_est: np.ndarray) -> np.ndarray:
-    """Rotation about Z (multiple of 90 deg) mapping the estimated room frame to the truth frame."""
-    q = r_true.T @ r_est
-    best, best_err = None, 1e9
-    for k in range(4):
-        a = math.radians(90 * k)
-        cand = np.array([[math.cos(a), -math.sin(a), 0], [math.sin(a), math.cos(a), 0], [0, 0, 1]])
-        err = np.linalg.norm(cand - q)
-        if err < best_err:
-            best, best_err = cand, err
-    return best
+def scene_truth(sc: dict) -> Truth:
+    """Ground truth of a synthetic scene in the scoring format."""
+    from room_gen.build import prepare_recipe
+    from room_gen.meshgen import recipe_bbox
+
+    objects = []
+    for pl in sc["room"]["placements"]:
+        rec, _ = prepare_recipe(sc["recipes"][pl["object"]])
+        lo, hi = recipe_bbox(rec)
+        objects.append({"id": pl["object"], "archetype": rec["archetype"], "matched": True, "position": list(pl["position"]),
+                        "size": [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]], "yaw": pl.get("yaw", 0.0)})
+    return Truth(truth_camera(sc), np.array(sc["room"]["shell"]["floor_polygon"], float), float(sc["room"]["shell"]["ceiling_height"]), objects)
 
 
 def score(sc: dict, room: dict, summary: dict) -> dict:
-    cam_t = truth_camera(sc)
-    cam_e = PinholeCamera.from_dict(room["camera"])
-    from room_gen.vision.calib import rotation_delta
-
-    q = _manhattan_align(cam_t.R, cam_e.R)
-    b = cam_t.C - q @ cam_e.C  # truth = q @ est + b (b uses the estimated scale)
-    est_poly = np.array([q[:2, :2] @ p + b[:2] for p in np.array(room["shell"]["floor_polygon"])])
-    tp = np.array(sc["room"]["shell"]["floor_polygon"])
-    t_box = (tp[:, 0].min(), tp[:, 0].max(), tp[:, 1].min(), tp[:, 1].max())
-    e_box = (est_poly[:, 0].min(), est_poly[:, 0].max(), est_poly[:, 1].min(), est_poly[:, 1].max())
-    ix = max(0.0, min(t_box[1], e_box[1]) - max(t_box[0], e_box[0]))
-    iy = max(0.0, min(t_box[3], e_box[3]) - max(t_box[2], e_box[2]))
-    inter = ix * iy
-    union = (t_box[1] - t_box[0]) * (t_box[3] - t_box[2]) + (e_box[1] - e_box[0]) * (e_box[3] - e_box[2]) - inter
-    # wall-position error for walls the camera can see (truth edges in front of the camera)
-    wall_err = []
-    for name, ti, ei in (("x0", 0, 0), ("x1", 1, 1), ("y0", 2, 2), ("y1", 3, 3)):
-        t_val, e_val = t_box[ti], e_box[ei]
-        normal = np.array([1.0, 0, 0]) if name.startswith("x") else np.array([0, 1.0, 0])
-        if (cam_t.R @ (normal * (1 if name.endswith("1") else -1)))[2] > 0.15:
-            wall_err.append(abs(t_val - e_val))
-    res = {
-        "focal_err_pct": round(100 * abs(cam_e.fx - cam_t.fx) / cam_t.fx, 2),
-        "rotation_err_deg": round(rotation_delta(cam_e.R, cam_t.R), 3),
-        "camera_height_err_pct": round(100 * abs(cam_e.C[2] - cam_t.C[2]) / cam_t.C[2], 1),
-        "ceiling_err_m": round(abs(room["shell"]["ceiling_height"] - sc["room"]["shell"]["ceiling_height"]), 3),
-        "floor_iou": round(inter / union, 3) if union > 0 else 0.0,
-        "visible_wall_err_m": round(float(np.mean(wall_err)), 3) if wall_err else None,
-        "openings": f"{sum(len(w['openings']) for w in room['shell']['walls'])}/{sum(len(w.get('openings', [])) for w in sc['room']['shell']['walls'])}",
-    }
-    # objects: match by archetype, nearest in the truth frame
-    truth = {pl["object"]: pl for pl in sc["room"]["placements"]}
-    matched, pos_err, size_err = 0, [], []
-    used = set()
-    for pl in room.get("placements", []):
-        rec = read_json(Path(summary["_world_dir"]) / "output" / pl["object"] / "recipe.json")
-        arch = rec.get("archetype")
-        p = q @ np.array(pl["position"]) + b
-        cands = [(np.linalg.norm(np.array(t["position"][:2]) - p[:2]), k) for k, t in truth.items()
-                 if k not in used and archetypes.resolve(sc["recipes"][k]["archetype"])[0] == arch]
-        if not cands:
-            continue
-        dist, k = min(cands)
-        if dist > 1.0:
-            continue
-        used.add(k)
-        matched += 1
-        pos_err.append(dist)
-        want = [sc["recipes"][k]["params"][key] for key in ("width", "depth", "height")]
-        got = pl.get("size_m") or want
-        size_err.append(float(np.mean([abs(g - w_) / w_ for g, w_ in zip(got, want)])))
-    res["objects_matched"] = f"{matched}/{len(truth)}"
-    res["object_pos_err_m"] = round(float(np.median(pos_err)), 3) if pos_err else None
-    res["object_size_err_pct"] = round(100 * float(np.median(size_err)), 1) if size_err else None
-    return res
+    return score_truth(scene_truth(sc), room, summary["_world_dir"])
 
 
 def run(scenes: list[str], modes: list[str], out: Path, write_report: bool = True) -> list[dict]:
@@ -188,6 +137,7 @@ def run(scenes: list[str], modes: list[str], out: Path, write_report: bool = Tru
             summary["_world_dir"] = str(world.dir)
             room = read_json(world.room_path)
             row = {"scene": name, "mode": mode, "seconds": round(seconds, 1), **score(sc, room, summary),
+                   "openings": f"{sum(len(w['openings']) for w in room['shell']['walls'])}/{sum(len(w.get('openings', [])) for w in sc['room']['shell']['walls'])}",
                    "scale_source": summary["scale"]["source"]}
             rows.append(row)
             print(json.dumps(row), flush=True)
@@ -197,8 +147,8 @@ def run(scenes: list[str], modes: list[str], out: Path, write_report: bool = Tru
 
 
 def _report(rows: list[dict], out: Path) -> None:
-    cols = ["scene", "mode", "focal_err_pct", "rotation_err_deg", "camera_height_err_pct", "ceiling_err_m", "floor_iou",
-            "visible_wall_err_m", "openings", "objects_matched", "object_pos_err_m", "object_size_err_pct", "seconds"]
+    cols = ["scene", "mode", "focal_err_pct", "gravity_err_deg", "yaw_err_deg", "camera_height_err_pct", "ceiling_err_m", "floor_iou",
+            "visible_wall_err_m", "objects_matched", "object_pos_err_m", "object_size_err_pct", "seconds"]
     lines = [
         "# Synthetic round-trip benchmark",
         "",

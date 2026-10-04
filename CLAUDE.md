@@ -184,10 +184,13 @@ Blender_Room_Generator/
     unit/                        pytest, host only (synthetic flat-shaded rooms in tests/unit/synth.py)
     blender/                     builds, exports, projection round trip, bridge (marker `blender`)
     ml/                          local models on a rendered room (markers `ml`, `blender`)
-    eval/                        scenes.py, benchmark.py, diagnose.py, REPORT.md, CLAUDE_TIER.md (marker `slow`)
+    eval/                        scenes.py, scoring.py, benchmark.py, diagnose.py, REPORT.md, CLAUDE_TIER.md (marker `slow`)
+    realdata/                    SUN RGB-D / NYU v2 real photos: fetch.py, sunrgbd.py, benchmark.py, nyu_subset.json,
+                                 REPORT.md, test_sunrgbd.py (marker `realdata`; data in deps/sunrgbd, never committed)
     fixtures/                    rooms/living_room.json, recipes/*.json
   worlds/  input/                user data (gitignored)
   deps/image-blaster             read-only submodule
+  deps/sunrgbd/                  local reference data (research-only licence; only README.md is tracked)
 ```
 
 ## 7. Data contracts (Spec)
@@ -658,6 +661,9 @@ uv run pytest tests/blender              # needs Blender: builds, exports, proje
 uv run pytest tests/ml                   # needs room_gen[ml] + cached weights (and Blender)
 uv run pytest tests/eval                 # slow quality gates on rendered rooms
 uv run python -m tests.eval.benchmark    # regenerates tests/eval/REPORT.md (4 scenes x 3 modes)
+uv sync --extra realdata && uv run python -m tests.realdata.fetch --accept-license   # one-time, research use
+uv run pytest tests/realdata             # real-photo checks and gates (marker `realdata`)
+uv run python -m tests.realdata.benchmark   # regenerates tests/realdata/REPORT.md (40 frames x 5 modes, ~1 h)
 cd annotator && npm test && npm run build
 ```
 
@@ -672,6 +678,16 @@ cd annotator && npm test && npm run build
 - **Benchmark** (`tests/eval/REPORT.md`): Blender renders of four rooms with known geometry,
   three modes (`auto` lines only, `annotated` with ground-truth boxes standing in for a person
   or Claude, `ml`). Quality gates in `tests/eval/test_benchmark.py`.
+- **Real photos** (`tests/realdata`): 40 NYU Depth v2 frames (10 living rooms, 10 bedrooms,
+  6 dining rooms, 6 kitchens, 4 home offices, 4 offices) with SUN RGB-D ground truth: Kinect
+  intrinsics, gravity, room layout, 3-D/2-D object boxes. Photos come from NYU's labelled set,
+  cropped exactly as SUN RGB-D does; annotations from SUN RGB-D's metadata. Five modes:
+  photo-auto/-annotated/-ml and twin-auto/-annotated, where the twin is a Blender render of
+  the frame's ground truth from the true camera, so photo and twin share one truth. Layout
+  is scored LSUN-style (share of pixels with the wrong surface: floor, ceiling, left/front/
+  right wall) plus per-pixel layout depth error, raw and scale-corrected. SUN RGB-D draws
+  partly seen rooms as the visible region fanned out from the camera; edges touching the
+  camera vertex are view boundaries and are ignored (`scoring.virtual_edges`).
 - **Annotator**: 89 vitest tests (transforms, reducer/undo, box normalisation, API errors,
   schema/type consistency); `npm run gen:types -- --check` fails when schemas change.
 

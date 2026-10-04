@@ -25,6 +25,7 @@ ml = [
 ]
 heic = ["pillow-heif>=0.16"]
 dev = ["pytest>=8", "httpx>=0.27", "pytest-timeout>=2.3"]
+realdata = ["h5py>=3.10"]
 
 [project.scripts]
 room_gen = "room_gen.cli:main"
@@ -43,4 +44,5 @@ markers = [
   "blender: needs a Blender executable",
   "ml: needs the room_gen[ml] extra and cached model weights",
   "slow: long-running end-to-end tests",
+  "realdata: needs the SUN RGB-D reference data in deps/sunrgbd (research use only)",
 ]

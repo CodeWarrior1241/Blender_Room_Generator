@@ -121,7 +121,18 @@ uv run pytest tests/unit       # fast, no Blender needed
 uv run pytest tests/blender    # needs Blender
 uv run pytest tests/ml         # needs the ml extra and cached weights
 uv run pytest tests/eval       # slow end-to-end quality gates
+uv run pytest tests/realdata   # real photos with measured ground truth (needs the reference data)
 (cd annotator && npm test)
+```
+
+The real-photo tests use 40 frames of NYU Depth v2 with SUN RGB-D's room-layout and object
+labels. That data is licensed for research use only, so it is fetched into `deps/sunrgbd/`
+and never committed (see `deps/sunrgbd/README.md`):
+
+```bash
+uv sync --extra realdata
+uv run python -m tests.realdata.fetch --accept-license
+uv run python -m tests.realdata.benchmark      # photo vs ground-truth twin render, tests/realdata/REPORT.md
 ```
 
 ## Licences

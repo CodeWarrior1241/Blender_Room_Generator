@@ -1,0 +1,295 @@
+{
+  "source": "SUN RGB-D, NYU Depth v2 frames (research use only; data in deps/sunrgbd, never committed)",
+  "created": "2026-10-04T21:28:29+00:00",
+  "criteria": "room layout annotated; floor 5-60 m2; ceiling 2.2-3.6 m; camera 0.6-2.0 m; >= 2 visible walls; >= 2 objects with a recognised archetype and a 2-D box; scene allocation {\"living_room\": 10, \"bedroom\": 10, \"dining_room\": 6, \"kitchen\": 6, \"home_office\": 4, \"office\": 4}; frames evenly spaced within each scene type",
+  "eligible_by_scene": {
+    "bedroom": 100,
+    "dining_room": 27,
+    "home_office": 23,
+    "kitchen": 95,
+    "living_room": 65,
+    "office": 38
+  },
+  "frames": [
+    {
+      "index": 1860,
+      "id": "NYU0001",
+      "scene": "kitchen",
+      "walls_visible": 2,
+      "objects_matched": 7
+    },
+    {
+      "index": 1863,
+      "id": "NYU0014",
+      "scene": "office",
+      "walls_visible": 2,
+      "objects_matched": 3
+    },
+    {
+      "index": 1879,
+      "id": "NYU0038",
+      "scene": "office",
+      "walls_visible": 2,
+      "objects_matched": 2
+    },
+    {
+      "index": 1887,
+      "id": "NYU0056",
+      "scene": "bedroom",
+      "walls_visible": 2,
+      "objects_matched": 2
+    },
+    {
+      "index": 1919,
+      "id": "NYU0153",
+      "scene": "living_room",
+      "walls_visible": 2,
+      "objects_matched": 3
+    },
+    {
+      "index": 1936,
+      "id": "NYU0185",
+      "scene": "bedroom",
+      "walls_visible": 2,
+      "objects_matched": 5
+    },
+    {
+      "index": 2001,
+      "id": "NYU0355",
+      "scene": "home_office",
+      "walls_visible": 2,
+      "objects_matched": 8
+    },
+    {
+      "index": 2011,
+      "id": "NYU0384",
+      "scene": "home_office",
+      "walls_visible": 2,
+      "objects_matched": 4
+    },
+    {
+      "index": 2078,
+      "id": "NYU0550",
+      "scene": "dining_room",
+      "walls_visible": 3,
+      "objects_matched": 7
+    },
+    {
+      "index": 2100,
+      "id": "NYU0582",
+      "scene": "living_room",
+      "walls_visible": 2,
+      "objects_matched": 3
+    },
+    {
+      "index": 2198,
+      "id": "NYU0781",
+      "scene": "kitchen",
+      "walls_visible": 2,
+      "objects_matched": 9
+    },
+    {
+      "index": 2233,
+      "id": "NYU0851",
+      "scene": "kitchen",
+      "walls_visible": 2,
+      "objects_matched": 5
+    },
+    {
+      "index": 2249,
+      "id": "NYU0919",
+      "scene": "bedroom",
+      "walls_visible": 3,
+      "objects_matched": 5
+    },
+    {
+      "index": 2268,
+      "id": "NYU0971",
+      "scene": "bedroom",
+      "walls_visible": 3,
+      "objects_matched": 2
+    },
+    {
+      "index": 2321,
+      "id": "NYU1099",
+      "scene": "bedroom",
+      "walls_visible": 4,
+      "objects_matched": 2
+    },
+    {
+      "index": 2411,
+      "id": "NYU1254",
+      "scene": "living_room",
+      "walls_visible": 3,
+      "objects_matched": 3
+    },
+    {
+      "index": 2426,
+      "id": "NYU1278",
+      "scene": "living_room",
+      "walls_visible": 2,
+      "objects_matched": 5
+    },
+    {
+      "index": 2457,
+      "id": "NYU1336",
+      "scene": "living_room",
+      "walls_visible": 6,
+      "objects_matched": 5
+    },
+    {
+      "index": 2471,
+      "id": "NYU1368",
+      "scene": "dining_room",
+      "walls_visible": 2,
+      "objects_matched": 13
+    },
+    {
+      "index": 2489,
+      "id": "NYU1407",
+      "scene": "dining_room",
+      "walls_visible": 4,
+      "objects_matched": 9
+    },
+    {
+      "index": 6976,
+      "id": "NYU0005",
+      "scene": "office",
+      "walls_visible": 3,
+      "objects_matched": 7
+    },
+    {
+      "index": 7000,
+      "id": "NYU0054",
+      "scene": "living_room",
+      "walls_visible": 2,
+      "objects_matched": 7
+    },
+    {
+      "index": 7016,
+      "id": "NYU0081",
+      "scene": "bedroom",
+      "walls_visible": 4,
+      "objects_matched": 3
+    },
+    {
+      "index": 7077,
+      "id": "NYU0166",
+      "scene": "living_room",
+      "walls_visible": 2,
+      "objects_matched": 7
+    },
+    {
+      "index": 7086,
+      "id": "NYU0213",
+      "scene": "office",
+      "walls_visible": 3,
+      "objects_matched": 5
+    },
+    {
+      "index": 7134,
+      "id": "NYU0266",
+      "scene": "living_room",
+      "walls_visible": 7,
+      "objects_matched": 8
+    },
+    {
+      "index": 7192,
+      "id": "NYU0370",
+      "scene": "home_office",
+      "walls_visible": 2,
+      "objects_matched": 4
+    },
+    {
+      "index": 7200,
+      "id": "NYU0378",
+      "scene": "home_office",
+      "walls_visible": 2,
+      "objects_matched": 10
+    },
+    {
+      "index": 7321,
+      "id": "NYU0590",
+      "scene": "living_room",
+      "walls_visible": 2,
+      "objects_matched": 3
+    },
+    {
+      "index": 7404,
+      "id": "NYU0747",
+      "scene": "kitchen",
+      "walls_visible": 2,
+      "objects_matched": 6
+    },
+    {
+      "index": 7442,
+      "id": "NYU0827",
+      "scene": "kitchen",
+      "walls_visible": 2,
+      "objects_matched": 3
+    },
+    {
+      "index": 7469,
+      "id": "NYU0880",
+      "scene": "kitchen",
+      "walls_visible": 7,
+      "objects_matched": 6
+    },
+    {
+      "index": 7501,
+      "id": "NYU0915",
+      "scene": "bedroom",
+      "walls_visible": 6,
+      "objects_matched": 4
+    },
+    {
+      "index": 7518,
+      "id": "NYU0942",
+      "scene": "bedroom",
+      "walls_visible": 3,
+      "objects_matched": 5
+    },
+    {
+      "index": 7530,
+      "id": "NYU0957",
+      "scene": "bedroom",
+      "walls_visible": 3,
+      "objects_matched": 7
+    },
+    {
+      "index": 7568,
+      "id": "NYU1025",
+      "scene": "bedroom",
+      "walls_visible": 2,
+      "objects_matched": 4
+    },
+    {
+      "index": 7673,
+      "id": "NYU1251",
+      "scene": "living_room",
+      "walls_visible": 2,
+      "objects_matched": 6
+    },
+    {
+      "index": 7714,
+      "id": "NYU1343",
+      "scene": "dining_room",
+      "walls_visible": 4,
+      "objects_matched": 2
+    },
+    {
+      "index": 7732,
+      "id": "NYU1372",
+      "scene": "dining_room",
+      "walls_visible": 3,
+      "objects_matched": 15
+    },
+    {
+      "index": 7742,
+      "id": "NYU1382",
+      "scene": "dining_room",
+      "walls_visible": 5,
+      "objects_matched": 7
+    }
+  ]
+}
