@@ -1,0 +1,3 @@
+[submodule "deps/image-blaster"]
+	path = deps/image-blaster
+	url = https://github.com/neilsonnn/image-blaster.git
