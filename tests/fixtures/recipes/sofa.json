@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "object": "sofa",
+  "archetype": "sofa",
+  "params": {
+    "width": 2.1,
+    "depth": 0.92,
+    "height": 0.85
+  },
+  "materials": {
+    "upholstery": {
+      "base_color": "#5f6f7a"
+    }
+  }
+}

@@ -1,0 +1,44 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - name: Install
+        run: uv sync --extra dev
+      - name: Unit tests
+        run: uv run pytest tests/unit -q
+      - name: Schemas are up to date
+        run: |
+          uv run room_gen schemas --out schemas > /dev/null
+          git diff --exit-code schemas/
+      - name: Blender (LTS) for integration tests
+        run: |
+          curl -sSL https://download.blender.org/release/Blender4.2/blender-4.2.9-linux-x64.tar.xz | tar -xJ
+          echo "ROOM_GEN_BLENDER=$PWD/blender-4.2.9-linux-x64/blender" >> "$GITHUB_ENV"
+          sudo apt-get update && sudo apt-get install -y libxi6 libxkbcommon0 libsm6 libgl1 libegl1
+      - name: Blender integration tests
+        run: uv run pytest tests/blender -q
+
+  annotator:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: annotator
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: annotator/package-lock.json
+      - run: npm ci
+      - run: npm run gen:types -- --check
+      - run: npm test
+      - run: npm run build

@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "object": "bookshelf",
+  "archetype": "bookshelf",
+  "params": {
+    "width": 0.9,
+    "depth": 0.3,
+    "height": 1.9
+  },
+  "materials": {}
+}

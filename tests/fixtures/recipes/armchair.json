@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "object": "armchair",
+  "archetype": "armchair",
+  "params": {
+    "width": 0.85,
+    "depth": 0.85,
+    "height": 0.9
+  },
+  "materials": {
+    "upholstery": {
+      "base_color": "#b07a4a"
+    }
+  }
+}

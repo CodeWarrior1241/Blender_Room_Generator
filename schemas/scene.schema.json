@@ -1,0 +1,239 @@
+{
+  "$defs": {
+    "ScenePlacement": {
+      "additionalProperties": true,
+      "properties": {
+        "assetId": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Assetid"
+        },
+        "instanceId": {
+          "title": "Instanceid",
+          "type": "string"
+        },
+        "objectId": {
+          "title": "Objectid",
+          "type": "string"
+        },
+        "physics": {
+          "anyOf": [
+            {
+              "enum": [
+                "rigidbody",
+                "static",
+                "ghost"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Physics"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "rotation": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Rotation",
+          "type": "array"
+        },
+        "scale": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Scale",
+          "type": "array"
+        }
+      },
+      "required": [
+        "instanceId",
+        "objectId",
+        "position",
+        "rotation",
+        "scale"
+      ],
+      "title": "ScenePlacement",
+      "type": "object"
+    },
+    "SceneSun": {
+      "additionalProperties": true,
+      "properties": {
+        "environmentIntensity": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Environmentintensity"
+        },
+        "intensity": {
+          "title": "Intensity",
+          "type": "number"
+        },
+        "rotation": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Rotation",
+          "type": "array"
+        }
+      },
+      "required": [
+        "intensity",
+        "rotation"
+      ],
+      "title": "SceneSun",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "groundPlaneColliderEnabled": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Groundplanecolliderenabled"
+    },
+    "groundPlaneOffset": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Groundplaneoffset"
+    },
+    "instances": {
+      "items": {
+        "$ref": "#/$defs/ScenePlacement"
+      },
+      "title": "Instances",
+      "type": "array"
+    },
+    "metricScaleFactor": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Metricscalefactor"
+    },
+    "shadowCatcherColor": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Shadowcatchercolor"
+    },
+    "shadowCatcherOpacity": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Shadowcatcheropacity"
+    },
+    "sun": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SceneSun"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "version": {
+      "const": 1,
+      "default": 1,
+      "title": "Version",
+      "type": "integer"
+    }
+  },
+  "title": "SceneProject",
+  "type": "object"
+}

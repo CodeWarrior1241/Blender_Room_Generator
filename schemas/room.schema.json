@@ -1,0 +1,871 @@
+{
+  "$defs": {
+    "CameraSpec": {
+      "additionalProperties": false,
+      "description": "The estimated camera of the source photo, in the room frame.",
+      "properties": {
+        "R": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            }
+          ],
+          "title": "R",
+          "type": "array"
+        },
+        "cx": {
+          "title": "Cx",
+          "type": "number"
+        },
+        "cy": {
+          "title": "Cy",
+          "type": "number"
+        },
+        "fx": {
+          "exclusiveMinimum": 0.0,
+          "title": "Fx",
+          "type": "number"
+        },
+        "fy": {
+          "exclusiveMinimum": 0.0,
+          "title": "Fy",
+          "type": "number"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "title": "Height",
+          "type": "integer"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "title": "Width",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "position",
+        "R",
+        "fx",
+        "fy",
+        "cx",
+        "cy",
+        "width",
+        "height"
+      ],
+      "title": "CameraSpec",
+      "type": "object"
+    },
+    "FixedFeature": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "recipe": {
+          "title": "Recipe",
+          "type": "string"
+        },
+        "yaw": {
+          "default": 0.0,
+          "title": "Yaw",
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "recipe",
+        "position"
+      ],
+      "title": "FixedFeature",
+      "type": "object"
+    },
+    "Fixture": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "default": "#fff4e6",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "kind": {
+          "default": "area",
+          "enum": [
+            "area",
+            "point",
+            "spot"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "power_w": {
+          "default": 60.0,
+          "minimum": 0.0,
+          "title": "Power W",
+          "type": "number"
+        },
+        "size": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size"
+        }
+      },
+      "required": [
+        "position"
+      ],
+      "title": "Fixture",
+      "type": "object"
+    },
+    "Lighting": {
+      "additionalProperties": false,
+      "properties": {
+        "exposure": {
+          "default": 0.0,
+          "title": "Exposure",
+          "type": "number"
+        },
+        "fixtures": {
+          "items": {
+            "$ref": "#/$defs/Fixture"
+          },
+          "title": "Fixtures",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "sky": {
+          "$ref": "#/$defs/Sky"
+        },
+        "sun": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Sun"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "title": "Lighting",
+      "type": "object"
+    },
+    "Material": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Alpha",
+          "type": "number"
+        },
+        "base_color": {
+          "default": "#cccccc",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Base Color",
+          "type": "string"
+        },
+        "emission": {
+          "anyOf": [
+            {
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Emission"
+        },
+        "emission_strength": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Emission Strength",
+          "type": "number"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image"
+        },
+        "metallic": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Metallic",
+          "type": "number"
+        },
+        "procedural": {
+          "anyOf": [
+            {
+              "enum": [
+                "wood",
+                "tile",
+                "fabric",
+                "noise",
+                "brick"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Procedural"
+        },
+        "roughness": {
+          "default": 0.6,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Roughness",
+          "type": "number"
+        },
+        "scale": {
+          "default": 1.0,
+          "exclusiveMinimum": 0.0,
+          "title": "Scale",
+          "type": "number"
+        },
+        "transmission": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Transmission",
+          "type": "number"
+        }
+      },
+      "title": "Material",
+      "type": "object"
+    },
+    "Opening": {
+      "additionalProperties": false,
+      "properties": {
+        "frame_depth": {
+          "default": 0.05,
+          "minimum": 0.0,
+          "title": "Frame Depth",
+          "type": "number"
+        },
+        "glazing": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Glazing"
+        },
+        "height": {
+          "exclusiveMinimum": 0.0,
+          "title": "Height",
+          "type": "number"
+        },
+        "kind": {
+          "enum": [
+            "door",
+            "window",
+            "opening"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "offset": {
+          "minimum": 0.0,
+          "title": "Offset",
+          "type": "number"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "sill": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Sill",
+          "type": "number"
+        },
+        "width": {
+          "exclusiveMinimum": 0.0,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "kind",
+        "offset",
+        "width",
+        "height"
+      ],
+      "title": "Opening",
+      "type": "object"
+    },
+    "Placement": {
+      "additionalProperties": false,
+      "properties": {
+        "object": {
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Object",
+          "type": "string"
+        },
+        "position": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "recipe": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Recipe"
+        },
+        "scale": {
+          "default": 1.0,
+          "exclusiveMinimum": 0.0,
+          "title": "Scale",
+          "type": "number"
+        },
+        "size_m": {
+          "anyOf": [
+            {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size M"
+        },
+        "support": {
+          "default": "floor",
+          "title": "Support",
+          "type": "string"
+        },
+        "yaw": {
+          "default": 0.0,
+          "title": "Yaw",
+          "type": "number"
+        }
+      },
+      "required": [
+        "object",
+        "position"
+      ],
+      "title": "Placement",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "human",
+            "model",
+            "fit"
+          ],
+          "title": "By",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tool": {
+          "default": "",
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Scale": {
+      "additionalProperties": false,
+      "properties": {
+        "confidence": {
+          "default": 0.3,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "reference": {
+          "default": "assumed camera height",
+          "title": "Reference",
+          "type": "string"
+        }
+      },
+      "title": "Scale",
+      "type": "object"
+    },
+    "Shell": {
+      "additionalProperties": false,
+      "properties": {
+        "ceiling": {
+          "$ref": "#/$defs/Surface"
+        },
+        "ceiling_height": {
+          "exclusiveMinimum": 0.0,
+          "title": "Ceiling Height",
+          "type": "number"
+        },
+        "floor": {
+          "$ref": "#/$defs/Surface"
+        },
+        "floor_polygon": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 3,
+          "title": "Floor Polygon",
+          "type": "array"
+        },
+        "guessed_edges": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Guessed Edges",
+          "type": "array"
+        },
+        "origin": {
+          "const": "floor_centroid",
+          "default": "floor_centroid",
+          "title": "Origin",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "trim": {
+          "$ref": "#/$defs/Trim"
+        },
+        "visible_edges": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Visible Edges",
+          "type": "array"
+        },
+        "wall_thickness": {
+          "default": 0.12,
+          "exclusiveMinimum": 0.0,
+          "title": "Wall Thickness",
+          "type": "number"
+        },
+        "walls": {
+          "items": {
+            "$ref": "#/$defs/Wall"
+          },
+          "title": "Walls",
+          "type": "array"
+        }
+      },
+      "required": [
+        "floor_polygon",
+        "ceiling_height"
+      ],
+      "title": "Shell",
+      "type": "object"
+    },
+    "Sky": {
+      "additionalProperties": false,
+      "properties": {
+        "color": {
+          "default": "#d0d8e4",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "strength": {
+          "default": 0.8,
+          "minimum": 0.0,
+          "title": "Strength",
+          "type": "number"
+        }
+      },
+      "title": "Sky",
+      "type": "object"
+    },
+    "Sun": {
+      "additionalProperties": false,
+      "properties": {
+        "azimuth": {
+          "default": 215.0,
+          "title": "Azimuth",
+          "type": "number"
+        },
+        "color": {
+          "default": "#fff1dc",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Color",
+          "type": "string"
+        },
+        "elevation": {
+          "default": 35.0,
+          "title": "Elevation",
+          "type": "number"
+        },
+        "strength": {
+          "default": 3.0,
+          "minimum": 0.0,
+          "title": "Strength",
+          "type": "number"
+        }
+      },
+      "title": "Sun",
+      "type": "object"
+    },
+    "Surface": {
+      "additionalProperties": false,
+      "properties": {
+        "material": {
+          "title": "Material",
+          "type": "string"
+        }
+      },
+      "required": [
+        "material"
+      ],
+      "title": "Surface",
+      "type": "object"
+    },
+    "Trim": {
+      "additionalProperties": false,
+      "properties": {
+        "baseboard_depth": {
+          "default": 0.015,
+          "minimum": 0.0,
+          "title": "Baseboard Depth",
+          "type": "number"
+        },
+        "baseboard_height": {
+          "default": 0.1,
+          "minimum": 0.0,
+          "title": "Baseboard Height",
+          "type": "number"
+        },
+        "crown": {
+          "default": false,
+          "title": "Crown",
+          "type": "boolean"
+        }
+      },
+      "title": "Trim",
+      "type": "object"
+    },
+    "Wall": {
+      "additionalProperties": false,
+      "properties": {
+        "edge": {
+          "minimum": 0,
+          "title": "Edge",
+          "type": "integer"
+        },
+        "material": {
+          "default": "wall_paint",
+          "title": "Material",
+          "type": "string"
+        },
+        "openings": {
+          "items": {
+            "$ref": "#/$defs/Opening"
+          },
+          "title": "Openings",
+          "type": "array"
+        }
+      },
+      "required": [
+        "edge"
+      ],
+      "title": "Wall",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "calibration": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Calibration"
+    },
+    "camera": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/CameraSpec"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "fixed_features": {
+      "items": {
+        "$ref": "#/$defs/FixedFeature"
+      },
+      "title": "Fixed Features",
+      "type": "array"
+    },
+    "lighting": {
+      "$ref": "#/$defs/Lighting"
+    },
+    "materials": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Material"
+      },
+      "title": "Materials",
+      "type": "object"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "placements": {
+      "items": {
+        "$ref": "#/$defs/Placement"
+      },
+      "title": "Placements",
+      "type": "array"
+    },
+    "scale": {
+      "$ref": "#/$defs/Scale"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "shell": {
+      "$ref": "#/$defs/Shell"
+    },
+    "source_images": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Images",
+      "type": "array"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Updated At"
+    },
+    "world": {
+      "title": "World",
+      "type": "string"
+    }
+  },
+  "required": [
+    "world",
+    "shell"
+  ],
+  "title": "Room",
+  "type": "object"
+}

@@ -1,0 +1,34 @@
+{
+  "name": "room-gen-annotator",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Browser annotator for Blender_Room_Generator: writes worlds/<slug>/annotations.json through the room_gen API.",
+  "engines": {
+    "node": ">=18.19"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "gen:types": "node scripts/gen-types.mjs"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.19.130",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@types/three": "^0.186.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "json-schema-to-typescript": "^15.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^6.4.3",
+    "vitest": "^3.2.7"
+  }
+}

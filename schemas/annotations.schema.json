@@ -1,0 +1,716 @@
+{
+  "$defs": {
+    "BoundaryLine": {
+      "additionalProperties": false,
+      "description": "A traced stretch of a room boundary: wall/floor, wall/ceiling, or a vertical wall/wall corner.\n\nUse when a corner's foot is hidden but the boundary itself is visible.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "wall_floor",
+            "wall_ceiling",
+            "wall_wall"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "pixels": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Pixels",
+          "type": "array"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        }
+      },
+      "required": [
+        "kind",
+        "pixels"
+      ],
+      "title": "BoundaryLine",
+      "type": "object"
+    },
+    "CalibrationHints": {
+      "additionalProperties": false,
+      "properties": {
+        "camera_height_m": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Camera Height M"
+        },
+        "exif": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ExifInfo"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "focal_px": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focal Px"
+        },
+        "parallel_pairs": {
+          "items": {
+            "$ref": "#/$defs/ParallelPair"
+          },
+          "title": "Parallel Pairs",
+          "type": "array"
+        },
+        "principal_point": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Principal Point"
+        },
+        "reference": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Reference"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "vertical_lines": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              }
+            ],
+            "type": "array"
+          },
+          "title": "Vertical Lines",
+          "type": "array"
+        }
+      },
+      "title": "CalibrationHints",
+      "type": "object"
+    },
+    "ExifInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "focal_35mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focal 35Mm"
+        },
+        "focal_mm": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Focal Mm"
+        },
+        "make": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Make"
+        },
+        "model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Model"
+        },
+        "orientation": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Orientation"
+        }
+      },
+      "title": "ExifInfo",
+      "type": "object"
+    },
+    "KnownLength": {
+      "additionalProperties": false,
+      "description": "Two pixels on the floor plane a known distance apart.",
+      "properties": {
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "metres": {
+          "exclusiveMinimum": 0.0,
+          "title": "Metres",
+          "type": "number"
+        },
+        "pixels": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            }
+          ],
+          "title": "Pixels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "pixels",
+        "metres"
+      ],
+      "title": "KnownLength",
+      "type": "object"
+    },
+    "ObjectAnnotation": {
+      "additionalProperties": false,
+      "properties": {
+        "archetype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Archetype"
+        },
+        "box": {
+          "maxItems": 4,
+          "minItems": 4,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Box",
+          "type": "array"
+        },
+        "id": {
+          "maxLength": 80,
+          "pattern": "^[a-z0-9][a-z0-9_-]*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "mask": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mask"
+        },
+        "materials_hint": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Materials Hint",
+          "type": "array"
+        },
+        "params": {
+          "additionalProperties": true,
+          "title": "Params",
+          "type": "object"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Score"
+        },
+        "support": {
+          "default": "floor",
+          "title": "Support",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "label",
+        "box"
+      ],
+      "title": "ObjectAnnotation",
+      "type": "object"
+    },
+    "OpeningAnnotation": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "door",
+            "window",
+            "opening"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "provenance": {
+          "$ref": "#/$defs/Provenance"
+        },
+        "quad": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "number"
+              }
+            ],
+            "type": "array"
+          },
+          "maxItems": 4,
+          "minItems": 4,
+          "title": "Quad",
+          "type": "array"
+        },
+        "wall_hint": {
+          "anyOf": [
+            {
+              "enum": [
+                "left",
+                "right",
+                "back",
+                "front",
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Wall Hint"
+        }
+      },
+      "required": [
+        "kind",
+        "quad"
+      ],
+      "title": "OpeningAnnotation",
+      "type": "object"
+    },
+    "ParallelPair": {
+      "additionalProperties": false,
+      "properties": {
+        "axis": {
+          "enum": [
+            "x",
+            "y",
+            "z"
+          ],
+          "title": "Axis",
+          "type": "string"
+        },
+        "lines": {
+          "items": {
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              }
+            ],
+            "type": "array"
+          },
+          "minItems": 2,
+          "title": "Lines",
+          "type": "array"
+        }
+      },
+      "required": [
+        "axis",
+        "lines"
+      ],
+      "title": "ParallelPair",
+      "type": "object"
+    },
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "human",
+            "model",
+            "fit"
+          ],
+          "title": "By",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tool": {
+          "default": "",
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "Reference": {
+      "additionalProperties": false,
+      "description": "A vertical segment standing on the floor (bottom pixel first) of known length.",
+      "properties": {
+        "kind": {
+          "const": "vertical",
+          "default": "vertical",
+          "title": "Kind",
+          "type": "string"
+        },
+        "label": {
+          "default": "",
+          "title": "Label",
+          "type": "string"
+        },
+        "metres": {
+          "exclusiveMinimum": 0.0,
+          "title": "Metres",
+          "type": "number"
+        },
+        "pixels": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            }
+          ],
+          "title": "Pixels",
+          "type": "array"
+        }
+      },
+      "required": [
+        "pixels",
+        "metres"
+      ],
+      "title": "Reference",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "boundary_lines": {
+      "items": {
+        "$ref": "#/$defs/BoundaryLine"
+      },
+      "title": "Boundary Lines",
+      "type": "array"
+    },
+    "calibration": {
+      "$ref": "#/$defs/CalibrationHints"
+    },
+    "ceiling_height_m": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0.0,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Ceiling Height M"
+    },
+    "floor_corners": {
+      "items": {
+        "maxItems": 2,
+        "minItems": 2,
+        "prefixItems": [
+          {
+            "type": "number"
+          },
+          {
+            "type": "number"
+          }
+        ],
+        "type": "array"
+      },
+      "title": "Floor Corners",
+      "type": "array"
+    },
+    "image": {
+      "title": "Image",
+      "type": "string"
+    },
+    "image_size": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "title": "Image Size",
+      "type": "array"
+    },
+    "known_lengths": {
+      "items": {
+        "$ref": "#/$defs/KnownLength"
+      },
+      "title": "Known Lengths",
+      "type": "array"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "objects": {
+      "items": {
+        "$ref": "#/$defs/ObjectAnnotation"
+      },
+      "title": "Objects",
+      "type": "array"
+    },
+    "openings": {
+      "items": {
+        "$ref": "#/$defs/OpeningAnnotation"
+      },
+      "title": "Openings",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "world": {
+      "title": "World",
+      "type": "string"
+    }
+  },
+  "required": [
+    "world",
+    "image",
+    "image_size"
+  ],
+  "title": "Annotations",
+  "type": "object"
+}

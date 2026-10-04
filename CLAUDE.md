@@ -1,8 +1,9 @@
 # Blender Room Generator — build specification
 
-This file is the specification for what to build in this repository and the standing
-instructions for any Claude session working here. Nothing below is implemented yet.
-Sections marked **Spec** describe the target; **Rules** (§15) apply now.
+This file is the specification for this repository and the standing instructions for any
+Claude session working here. The plan in §1–§16 is implemented (see §17 for status,
+measured quality and known limits); sections marked **Spec** describe the design as built.
+**Rules** (§15) apply to every change.
 
 ## 0. One sentence
 
@@ -155,42 +156,38 @@ input/photo.jpg ─ stage ─► source/0-photo.jpg
 
 ```
 Blender_Room_Generator/
-  CLAUDE.md  README.md  LICENSE
-  pyproject.toml  uv.lock             host package + deps; `uv sync` creates .venv
-  room_gen.config.json                user defaults: blender path, render size, exports, fit budget
-  schemas/                            JSON Schema exported from the pydantic models (docs + annotator types)
-  room_gen/                           host package (Python ≥ 3.10)
-    __init__.py  __main__.py  cli.py  (typer)
-    models.py       pydantic models for every contract in §7; `schemas/` is generated from here
-    project.py      envelope, staging, state report (parity with project-state.mjs)
-    indexed.py      N-slug.ext / .N-slug-request.json helpers
-    blender_exec.py find Blender, run headless, parse ROOM_GEN_RESULT, render-server client
-    sidecar.py  coords.py  exif.py (Pillow)
-    vision/         host-side CV
-      imageio.py  lines.py  calib.py  layout.py  openings.py  objects.py  light.py  texture.py  fit.py
-    ml/             optional local models (import-guarded; package extra `room_gen[ml]`)
-      __init__.py  runtime.py (device pick, cache, budget)  depth.py  detect.py  segment.py  caption.py
-    archetypes/     parametric furniture → DSL parts (pure Python)
-      __init__.py  seating.py  tables.py  storage.py  beds.py  lighting.py  misc.py  sizes.py  synonyms.py
-    server.py       FastAPI app for the annotator: serves the built UI, reads/writes world JSON, runs tools
-    blender/        runs inside Blender only (bpy, numpy, mathutils, bmesh)
-      entry.py  shim.py  shell.py  openings.py  recipes.py  materials.py  lighting.py
-      camera.py  placement.py  exporters.py  preview.py  render.py  bridge.py
-  annotator/        Vite + React + TypeScript + Three.js (ported from deps/image-blaster/app)
-    package.json  vite.config.ts  src/  (calibrate, trace, openings, boxes, result viewer)
-  .claude/
-    settings.json  rules/project.md  hooks/setup-check.sh  hooks/input-check.sh
-    skills/room-project  room-survey  room-boxes  room-recipe  room-build  room-qc  room-export  room-bridge
-    agents/room-survey.md  room-boxes.md  room-recipe.md  room-build.md  room-qc.md  room-bridge.md
-  worlds/.gitkeep  input/.gitkeep
+  CLAUDE.md  README.md  LICENSE  pyproject.toml  uv.lock
+  room_gen.config.example.json   copy to room_gen.config.json to override defaults (room_gen/config.py)
+  .github/workflows/ci.yml       unit + Blender LTS integration tests, annotator checks
+  schemas/                       JSON Schema generated from room_gen/models.py (`room_gen schemas`)
+  room_gen/                      host package (Python >= 3.10)
+    cli.py  cli_vision.py        typer CLI (`room_gen ...`); every command prints one JSON report
+    config.py  jsonio.py  indexed.py  sidecar.py  patch.py  project.py
+    models.py                    pydantic contracts (§7)
+    geometry.py                  PinholeCamera, rotations, polygons (shared conventions)
+    coords.py                    Three.js Y-up <-> Blender Z-up; image-blaster viewer constants
+    meshgen.py                   pure-Python primitive meshes (host bbox/face counts and Blender)
+    shellgeom.py                 pure-Python wall frames, offsets, UV conventions, shell edges
+    textures.py                  tileable procedural PNGs (wood/tile/brick/fabric/noise)
+    exif.py                      focal length / orientation (Pillow)
+    build.py                     prepares Blender jobs, manifests, scene.json, sidecars; bridge; render
+    pipeline.py                  `room_gen auto`: photo -> annotations, calibration, room.json, recipes
+    server.py                    FastAPI backend of the annotator
+    blender_exec.py              find Blender, run entry.py headless, parse ROOM_GEN_RESULT
+    vision/                      imageio lines calib layout wireframe openings objects scale light texture fit
+    ml/                          runtime depth detect segment   (optional extra `room_gen[ml]`)
+    archetypes/                  _dsl seating tables storage beds lighting misc (35 archetypes)
+    blender/                     entry util shim materials meshbuild shell staging exporters preview build bridge inspect
+  annotator/                     Vite + React 18 + TypeScript + three.js web annotator (vitest tests in src/)
+  .claude/                       settings.json, hooks/, rules/project.md, skills/room-*, agents/room-*
   tests/
-    unit/          pytest on host (vision on synthetic images, archetypes, models, coords, exif)
-    blender/       `blender -b --python tests/blender/run_all.py`
-    annotator/     vitest
-    fixtures/      rooms/ recipes/ annotations/ synthetic photos rendered by the eval
-    eval/          synthetic round-trip benchmark + REPORT.md
-  .github/workflows/ci.yml   uv + pytest; downloads Blender LTS tarball for the Blender tests; npm test
-  deps/image-blaster                  git submodule, read-only reference
+    unit/                        pytest, host only (synthetic flat-shaded rooms in tests/unit/synth.py)
+    blender/                     builds, exports, projection round trip, bridge (marker `blender`)
+    ml/                          local models on a rendered room (markers `ml`, `blender`)
+    eval/                        scenes.py, benchmark.py, diagnose.py, REPORT.md, CLAUDE_TIER.md (marker `slow`)
+    fixtures/                    rooms/living_room.json, recipes/*.json
+  worlds/  input/                user data (gitignored)
+  deps/image-blaster             read-only submodule
 ```
 
 ## 7. Data contracts (Spec)
@@ -234,6 +231,10 @@ labels, and known lengths.
     "exif": { "focal_mm": 4.2, "focal_35mm": 26 }   // filled by room_gen.exif when present
   },
   "floor_corners": [[120,2200],[2010,2600],[3900,2250]],   // visible floor/wall corners, left→right
+  "boundary_lines": [                        // traced visible stretches when corner feet are hidden
+    { "kind": "wall_wall",  "pixels": [[1370,420],[1366,1240]], "provenance": { "by": "model", "tool": "room-survey", "confidence": 0.6 } },
+    { "kind": "wall_floor", "pixels": [[757,1422],[1307,1425]], "provenance": { "by": "human", "tool": "annotator", "confidence": 0.9 } }
+  ],
   "ceiling_height_m": null,
   "openings": [
     { "kind": "door",   "wall_hint": "left", "quad": [[300,700],[700,650],[700,2500],[300,2600]], "label": "door to hallway" },
@@ -324,20 +325,26 @@ brick`. The `"script": "path.py"` escape hatch exists, is off unless
 
 `output/world/N-world.json` is shaped like the World Labs manifest the viewer parses
 (`assets.mesh.collider_mesh_url` → local `N-world.glb`, `thumbnail_url` → local thumbnail,
-`spz_urls: {}`, `metric_scale_factor: 1`) plus a `generator` block (`provider: "room-gen"`,
-`room_json`, `calibration_json`, `blender_version`, `tiers_used`). Hidden sidecars record
-inputs, file hashes, Blender binary/version, per-stage wall-clock, exporter results,
-warnings, status.
+`spz_urls: {}`, `metric_scale_factor: 1`, `flip_y: false` so the viewer does not flip our
+Y-up GLB) plus a `generator` block (`provider: "room-gen"`, files, `tiers_used`). Hidden
+sidecars record inputs with sha256, Blender binary/version, seconds, warnings, failed
+outputs, status; a build is skipped as `up-to-date` when the input digest is unchanged.
+
+Furnished-room files live in `output/world/` under the `world-room` slug because the
+image-blaster viewer would list any other `output/<dir>` holding a model as a placeable object.
 
 ```
-output/world/   N-world.blend  N-world.glb  [N-world.fbx N-world.obj N-world.usdc]
-                N-world-preview.png  N-world-plan.png  N-world-thumbnail.webp|png
-                N-world-tex-floor.png  N-world-tex-wall-<i>.png
-                N-world-overlay.png   (photo + reprojected wireframe, for humans and QC)
-                N-world.json  .N-world-request.json
-output/<obj>/   N-<obj>.glb  N-<obj>.blend  N-<obj>-preview.png  .N-<obj>-request.json
-output/room/    N-room.blend  N-room.glb  N-room-preview.png     (furnished, appended)
-scene.json      derived from placements, Three.js Y-up
+output/world/   N-world.blend  N-world.glb  [N-world.fbx N-world.obj N-world.usd]   shell + fixed features
+                N-world-preview.png                       empty room from the photo camera
+                N-world-room.blend  N-world-room.glb [...] furnished room (+ photo camera)
+                N-world-room-preview.png  N-world-plan.png  N-world-thumbnail.webp
+                N-world.json  .N-world-request.json  .N-world-blender.log
+                overlay.png      photo + reprojected shell (yellow), openings (cyan), objects (magenta)
+                grid.png         photo + labelled native-pixel grid (`room_gen grid`, for Claude)
+                textures/        procedural tiles and photo-*-<surface>.png rectified photo textures
+output/<obj>/   N-<obj>.glb  N-<obj>.blend  [fbx obj]  N-<obj>-preview.png  .N-<obj>__model-request.json
+                recipe.json  object.json
+scene.json      placements in Three.js Y-up for the viewer (scale = 2 x ours: the viewer draws objects at 0.5)
 ```
 
 ## 8. Model-free toolchain (Spec) — the core of the project
@@ -356,10 +363,14 @@ pixel coordinate is recorded. The 35 mm-equivalent focal length is the calibrati
 
 ### 8.2 Line segments (`lines.py`)
 
-`cv2.createLineSegmentDetector` (LSD, available again in OpenCV ≥ 4.5.1) as the primary
-detector, `cv2.ximgproc.createFastLineDetector` (opencv-contrib) as the alternative, and
-`cv2.Canny` + `cv2.HoughLinesP` as the fallback. Output: segments with endpoints, length,
-mean gradient magnitude; debug overlay PNG with `--debug`.
+`cv2.createLineSegmentDetector` (LSD) on a CLAHE-enhanced CIE-L image (`lines.enhance`),
+FastLineDetector and Canny+HoughLinesP as fallbacks. Contrast enhancement matters: soft
+wall/ceiling boundaries (white wall, grey ceiling) are otherwise below LSD's gradient
+threshold, and losing them cost up to 1.3 m of wall error in the benchmark. Each segment also
+gets a cross-line colour contrast (`side_contrast`, ΔE between thin strips on both sides);
+layout evidence keeps segments with ΔE ≥ 4, which drops texture lines such as floor-plank
+seams that have the same colour on both sides. `OrientedEdges` rasterises segments into 12
+orientation bins with a distance transform each (oriented chamfer).
 
 ### 8.3 Vanishing points and camera (`calib.py`)
 
@@ -379,17 +390,34 @@ mean gradient magnitude; debug overlay PNG with `--debug`.
 - **EXIF prior:** `FocalLengthIn35mmFilm` seeds `f`; a disagreement > 15 % with the VP
   estimate lowers confidence and is reported.
 
-### 8.4 Floor plane and room layout (`layout.py`)
+### 8.4 Floor plane and room layout (`layout.py`, `wireframe.py`)
 
-- **Auto:** wall/floor boundary = long segments in the lower 60 % of the image pointing to
-  one of the two horizontal VPs; chain left→right; corners where chains of different VP
-  families meet near a vertical segment. Back-project the polyline to the floor plane and
-  fit a Manhattan rectangle (edges parallel to the VP axes) by least squares; unseen edges
-  become `guessed_edges` with defaults (room depth = 1.5 × visible width unless a wall is
-  seen).
-- **From clicks:** `floor_corners` back-projected directly; closed with Manhattan guesses.
-- **Ceiling height:** from a wall corner whose top is visible, else `ceiling_height_m`,
-  else 2.7 m with low confidence.
+The room is an axis-aligned box (x0, x1, y0, y1, h) in the calibration frame (camera above
+the origin; polygon edges 0 front, 1 right, 2 back, 3 left). Objective, all in pixel units:
+
+- **line support**: Gaussian-weighted length of projected box edges near same-orientation
+  segments (τ = 4 px at 1024 px working width), minus 0.15 × unsupported visible length;
+- **orientation consistency** (Hedau/Lee): a segment lying on a face cannot run parallel to
+  that face's normal (e.g. plank end-joints on a hypothesised wall); −0.5 × such length;
+- **face uniformity**: mean squared CIE-Lab deviation of a 64×48 colour grid from its
+  face's mean, weight 0.02 × image width; separates a white wall from a beige one when the
+  floor line is hidden behind a bed;
+- **ceiling prior**: soft penalty below 2.4 m; search bound 2.2 m.
+
+Search: differential evolution on a 2τ-smoothed objective, then **scale-ray scans** — for
+every subset of walls together with the ceiling, solutions scaled about the camera (a
+wall/ceiling line pair projects identically at (d, h) and (k·d, k·h); only floor lines break
+the tie) — then full-range per-parameter rescans refining the top three peaks, then a local
+polish; two restarts with different seeds, best objective wins. About 10 s on this CPU.
+
+Annotated `floor_corners` fix the walls they touch; `ceiling_height_m` fixes h;
+`boundary_lines` add strong, kind-specific line evidence (wall_floor lines only support model
+floor edges, wall_ceiling ceiling edges, wall_wall vertical corners; weight 3, no penalty) and
+mark the walls they touch as seen. Walls with
+too little evidence are marked unseen and placed just beyond the visible floor (border rays
+clipped at seen walls) but never more than 4 m from the camera. With the depth model, seen
+walls with weak support are blended with the point-cloud extents and unseen walls/ceiling
+only grow to contain the points. The joint camera + shell refinement is §8.9.
 
 ### 8.5 Openings (`openings.py`)
 
@@ -399,25 +427,27 @@ aspect reaching the floor (door); masks via `cv2.fillPoly`. Reported as candidat
 confidence, built only when confirmed by annotation or confidence ≥ 0.8. Confirmed quads
 → wall plane → `offset`, `width`, `sill`, `height`.
 
-### 8.6 Objects from boxes (`objects.py`, `archetypes/`)
+### 8.6 Objects from boxes (`objects.py`, `scale.py`, `archetypes/`)
 
-- **Mask from box:** `cv2.grabCut` initialised with the box (5 iterations) gives a
-  foreground mask; its bottom contour is the floor-contact line, its extremal columns the
-  width, its top the height. This is markedly better than the raw box when objects overlap.
-- **Metric, no learning:** contact-line midpoint → floor point via the homography (or the
-  support object's top plane); contact-line endpoints → width; mask top → height via the
-  vertical through the floor point; depth from the archetype's default aspect unless a side
-  face is visible; yaw from the dominant horizontal VP among segments inside the mask.
-  Confidence drops when the mask touches the image border or another mask's floor region.
-- **Archetype library** (`room_gen/archetypes/`, pure Python): sofa, loveseat, armchair,
-  dining_chair, office_chair, stool, bench, bed, nightstand, dresser, wardrobe, bookshelf,
-  cabinet, sideboard, desk, dining_table, coffee_table, side_table, tv_stand, tv, floor_lamp,
-  table_lamp, pendant_lamp, rug, plant, radiator, fireplace, picture_frame, curtain,
-  generic_box. Each: `sizes.py` defaults, named params with ranges, material slots,
-  `expand(params) -> parts[]`. `generic_box` is the universal fallback so any labelled box
-  becomes a correctly sized placeholder. `synonyms.py` maps labels (`couch` → sofa).
-- **Colours:** `cv2.kmeans` (k = 3) on mask pixels after dropping the brightest 10 % and
-  darkest 5 %; largest cluster → primary `base_color`, second → secondary slot.
+- **Mask**: SAM when the extra is installed, else `cv2.grabCut` from the box (falls back to the
+  box when the mask covers < 15 %).
+- **3-D fit**: least squares over (x, y, log w, log d, log h) so the projected box matches the
+  mask's bounding box; truncated sides are ignored; weak log-normal priors on the archetype's
+  default size and aspect; optional depth term. Yaw is Manhattan: objects whose archetype is
+  `against_wall` face away from the nearest wall, others face the camera's quadrant (both 0°
+  and 90° variants are tried). Footprints are clamped inside the room. Wall items back-project
+  onto the nearest wall plane and fall back to a free-standing fit when they do not land on it.
+  Items on other items get `z` from the supporter's top; pendant lamps hang from the ceiling.
+- **Scale from object heights** (`vision/scale.py`): typical heights with relative spread per
+  archetype (dining table 0.75 m ± 5 %, counter 0.90 ± 4 %, sofa 0.84 ± 12 %, ...; doors
+  2.03 m ± 4 %). Objects cut by the image top/bottom or covered by a box in front of them are
+  excluded; weighted median, outliers beyond 2.5 MAD dropped, uncertainty inflated by spread
+  and for single items, correction capped at ×1.5; blended with the current scale source
+  (σ: reference 3 %, known length 4 %, assumed eye height 13 %, depth model 25 %).
+- **Archetypes**: 35 parametric generators (`room_gen archetypes list`), each with defaults,
+  ranges, material slots and synonyms; `generic_box` is the fallback. Every archetype matches
+  its declared bbox within 3 % at 0.6×, 1× and 1.4× size (unit-tested).
+- **Colours**: k-means (k = 3) on mask pixels → slot base colours in archetype slot order.
 
 ### 8.7 Lighting from image statistics (`light.py`)
 
@@ -530,85 +560,87 @@ How they plug in, without changing any contract:
 `room_gen/blender/entry.py` is the only script Blender runs:
 
 ```
-blender --background --factory-startup --python room_gen/blender/entry.py -- \
-  <command> --world <path> [--index N] [--json <path>] [--out <dir>] [--config room_gen.config.json] [--debug]
-commands: probe | build | build-object | render | export | bridge
+blender --background --factory-startup --python-exit-code 1 --python room_gen/blender/entry.py -- \
+  <probe | build | render | bridge | inspect> --job job.json
 ```
 
-Last stdout line is `ROOM_GEN_RESULT {json}`; non-zero exit on failure. Modules: `shim.py`
-(EEVEE id, OBJ operator, optional USD/WEBP, 4.2+ extensions), `shell.py` (floor, mitred
-solid walls, ceiling, trim; one object per surface, metre-scaled UVs, collection `Shell`),
-`openings.py`, `recipes.py` (`build_recipe(recipe) -> Object`, asserts `bbox_m` ±10 %,
-`auto_fit`), `materials.py` (Principled only, glTF-safe; image textures from §8.8),
-`lighting.py`, `camera.py`, `placement.py` (append/link, `support` by ray-cast,
-wall-intersection nudge), `exporters.py` (GLB `export_yup=True`, FBX, OBJ, optional USD,
-always `.blend`), `preview.py` (EEVEE 960×540, 64 samples, Filmic), `render.py` (render a
-room spec from an arbitrary camera; used by the synthetic benchmark), `bridge.py`
-(import image-blaster world: collider GLB, object GLBs, `scene.json` with `x,y,z → x,−z,y`,
-`sun`, `metricScaleFactor`; save `N-room.blend`; re-export).
+The host (`room_gen/build.py`) writes a fully resolved job (absolute paths, expanded
+recipes, final placements, Blender camera parameters from `PinholeCamera.blender_params`);
+Blender only executes. The last stdout line is `ROOM_GEN_RESULT {json}`.
+
+- `shell.py`: floor and ceiling slabs over the mitred outer polygon, one solid slab per wall,
+  openings cut with EXACT booleans applied through the depsgraph, baseboards between
+  floor-level openings, casings, window glass, door leaves, emissive exterior backdrops
+  (rendered, never exported); photo-texture UVs follow `shellgeom`.
+- `meshbuild.py`: recipe parts from `meshgen` into one bmesh per object, per-part bevel on
+  sharp edges, boolean cutters, box-projected world-scale UVs, sharp-edge shading.
+- `materials.py`: Principled BSDF only (glTF-safe); procedural looks are host-generated PNG tiles.
+- `staging.py`: sun (azimuth clockwise from +Y), sky colour, fixtures, a ceiling fill light when
+  no fixtures exist, photo camera, plan camera, placements.
+- `exporters.py`: GLB (Y-up, modifiers applied), FBX, OBJ, USD when the build has it; partial
+  `.blend` files through `bpy.data.libraries.write` of a temporary scene.
+- `preview.py`: EEVEE previews (AgX when available), Workbench plan with labels, studio shots
+  per object, WEBP/PNG thumbnails. `bridge.py` reproduces image-blaster's viewer transforms.
+- Measured: a 7-object living room builds with all exports and previews in about 3 s (9 s with
+  per-object studio renders on first run); projection matches Blender within 0.6 px.
 
 ## 10. Host CLI (Spec)
 
-Installed as `room_gen` (typer) by `uv sync`; `python -m room_gen` is equivalent.
+`uv sync` installs `room_gen`; `uv run room_gen ...` or `.venv/bin/room_gen ...`. Global options:
+`--root <workspace>`, `--config <file>`, `--blender <exe>`.
 
 ```
 room_gen project   --world <slug> [--stage-input] [--display-name ...]
-room_gen probe                                     # Blender, OpenCV, Node, annotator build status
-room_gen auto      --world <slug> [--ml auto|on|off] [--device cpu|cuda|mps]   # lines→calibrate→layout→objects→light→texture→room.json
-room_gen calibrate --world <slug> [--manual]
-room_gen layout    --world <slug>
-room_gen objects   --world <slug> [--ids a,b]
-room_gen light     --world <slug>
-room_gen texture   --world <slug> [--surfaces floor,wall-0]
-room_gen validate  --room <path> | --recipe <path> | --annotations <path>
-room_gen build     --world <slug> [--objects a,b] [--skip-shell] [--regenerate]
-room_gen assemble  --world <slug>
-room_gen fit       --world <slug> [--max-evals N] [--params camera,shell,openings,placements]
-room_gen preview   --world <slug> [--index N]
-room_gen export    --world <slug> --formats glb,fbx,obj[,usd] [--index N]
-room_gen bridge    --world <path-to-worlds/slug> [--out worlds/<slug>]
-room_gen annotate  --world <slug> [--port 5174]    # serves the annotator, opens the browser
-room_gen patch     --room <path> --ops <merge-patch.json>
-room_gen path      --world <slug> --kind world|object --slug x --ext .glb [--next]
-room_gen archetypes [list | show <name> | expand <recipe.json>]
-room_gen models    [list | download | check]       # optional local models (§8.12)
+room_gen probe                                  # Blender + capabilities, OpenCV, models, annotator, worlds
+room_gen auto      --world <slug> [--ml auto|on|off] [--device cpu|cuda|mps] [--no-fit] [--no-textures] [--build]
+room_gen grid      --world <slug>               # labelled native-pixel grid image for Claude
+room_gen validate  --room | --recipe | --annotations | --calibration | --image <file>
+room_gen schemas   [--out schemas]
+room_gen build     --world <slug> [--formats glb,fbx,obj,usd] [--objects a,b] [--force] [--no-previews]
+room_gen export    --world <slug> --formats glb,fbx,obj
+room_gen bridge    --world <image-blaster worlds/slug> [--out <slug>] [--formats ...]
+room_gen inspect   <file.glb|.fbx|.obj|.blend>   # re-import in Blender, report meshes/bounds
+room_gen patch     --room <room.json> --ops <merge-patch.json>   # validated before writing
+room_gen path      --world <slug> --kind world|object [--slug x] [--ext .glb] [--next]
+room_gen annotate  --world <slug> [--port 5174]   # serves annotator/dist + API
+room_gen archetypes list | show <name> | resolve "<label>" | expand <recipe.json> [--write]
+room_gen models    list | check | download
+room_gen version
 ```
 
-Shared behaviour: synchronous, one JSON report on stdout, human log on stderr, exit 0/1,
-`--regenerate` allocates a new index, otherwise repair-in-place. Blender discovery:
-`--blender`, `ROOM_GEN_BLENDER`, `room_gen.config.json`, `PATH`, platform defaults
-(`/Applications/Blender.app/Contents/MacOS/Blender`, `C:\Program Files\Blender Foundation\Blender*\blender.exe`,
-`/usr/bin/blender`, `/snap/bin/blender`). Per-invocation timeout from config (600 s).
-`auto` is the one-command model-free path.
+The individual stages (calibrate, layout, objects, light, texture, fit) run inside `auto`;
+`--no-fit` / `--no-textures` skip stages. All commands are synchronous and print one JSON
+object; exit code 0/1. Blender discovery: `--blender`, `ROOM_GEN_BLENDER`, config `blender`,
+`PATH`, platform defaults.
 
 ## 11. Claude layer (Spec) — optional autofill
 
 ### 11.1 Model assignment
 
-Subagent frontmatter `model:` decides; the main session's model is the user's `/model`
-choice. Tier-0 work never depends on this table.
+Subagent frontmatter `model:` decides; tier-0 work never depends on it. Measured on the
+dining benchmark scene (tests/eval/CLAUDE_TIER.md): Sonnet's boxes averaged IoU 0.77 with the
+truth and reproduced the room as well as ground-truth boxes; Haiku's averaged about 0.15
+(shifted ~120 px) and are not usable for pixel work. Vision-with-coordinates therefore uses Sonnet.
 
 | Agent | Model | Writes | Notes |
 |---|---|---|---|
-| `room-survey` | `sonnet` | `image.json` text, `annotations.floor_corners`, `openings[]`, `reference`, `known_lengths` | the one vision step where judgment matters; asks for one known length when auto calibration confidence < 0.5 |
-| `room-boxes` | `haiku` | `annotations.objects[]` (label, box, support, archetype, materials_hint) | escalate to `sonnet` if `objects` rejects > 30 % of boxes |
-| `room-recipe` | `haiku` | `recipe.json` archetype + params (not parts) | only when archetype defaults look wrong |
-| `room-build` | `haiku` | nothing; runs CLI, reads JSON reports | never Reads PNGs |
-| `room-qc` | `sonnet` | merge patch to `room.json` / recipes | reads `N-world-overlay.png` and the photo; after `fit`; ≤ 2 rounds |
-| `room-bridge` | `haiku` | nothing; mechanical | |
+| `room-survey` | `sonnet` | `image.json`, `annotations.floor_corners`, `boundary_lines`, `openings[]`, `reference`, `known_lengths` | reads grid.png and overlay.png |
+| `room-boxes` | `sonnet` | `annotations.objects[]` | Haiku measured too imprecise |
+| `room-recipe` | `haiku` | one `recipe.json` (archetype, style params, colours) | text-only edits |
+| `room-build` | `haiku` | nothing; runs `build`, reports | never reads images |
+| `room-qc` | `sonnet` | annotations / recipe / merge patch, then rebuild | ≤ 2 rounds |
+| `room-bridge` | `haiku` | nothing; runs `bridge` | |
 
 ### 11.2 Skills, hooks, settings
 
-Skills mirror image-blaster's shape (`name`, `description`, `argument-hint`, tight
-`allowed-tools` limited to `room_gen *`, `ls`, Read, Write, Glob; `context: fork` + `agent:`
-for generation skills; `model:` per §11.1). `room-survey` carries `ROOM-SURVEY.md`
-(literal-language rules from `IMAGE-BLAST.md`, the pixel-box contract, scale anchors:
-doors 2.0–2.1 m, counters 0.9 m, seats 0.45 m, ceilings 2.4–3.0 m, switch plates 1.2 m).
-`room-recipe` carries `RECIPE-DSL.md` and the archetype table. Hooks: `SessionStart` runs
-`room_gen probe` and lists worlds and staged input (no key checks); `UserPromptSubmit` lists
-`input/`. `settings.json` allow-list: `Skill(room-*)`, `Bash(room_gen *)`,
-`Bash(uv run room_gen *)`, `Bash(ls *)`, `Bash(mkdir *)`. Images are Read only in
-`room-survey`, `room-boxes`, `room-qc`.
+Skills: `room-project`, `room-auto` (orchestration in the main session), `room-survey`
+(+ `ROOM-SURVEY.md` contract), `room-boxes`, `room-recipe` (+ `RECIPE-DSL.md`), `room-build`,
+`room-qc`, `room-export`, `room-bridge`; the generation skills fork into the agent of the same
+name. `allowed-tools` are limited to Read/Write/Glob, `ls` and `room_gen`. Everything Claude
+writes carries `provenance.by = "model"`; `auto` never overwrites `human` or `model` blocks.
+Hooks: `SessionStart` runs `room_gen probe` and prints Blender/model/annotator status, worlds
+and staged input (no key checks); `UserPromptSubmit` lists `input/`. Rules for sessions in
+this repo that *use* the tool are in `.claude/rules/project.md`.
 
 ### 11.3 Order of operations (one-shot)
 
@@ -620,51 +652,42 @@ A user with no model runs steps 2 and 4 and, if needed, `annotate` instead of 3 
 
 ## 12. Quality bar and tests (Spec)
 
-- **Unit (host pytest):** vision modules on synthetic images (rendered checkerboard rooms
-  from the eval set and generated line images): LSD recovers known lines within 1 px, VP
-  and focal recovery within 3 % and rotation within 1°, homography round-trip, grabcut
-  mask → contact line on synthetic boxes; archetype expand at min/default/max params yields
-  ≤ 64 parts and the declared bbox; pydantic models accept fixtures and reject documented
-  bad cases; coords; EXIF reader on sample headers; merge-patch; Blender discovery with
-  fake filesystems.
-- **Blender integration:** every fixture room and recipe builds and exports (`FINISHED`),
-  face caps, previews non-uniform, GLB re-import object counts, render-from-camera round-trip,
-  annotator `annotations.json` ↔ headless equivalence.
-- **Annotator (vitest):** reducers, coordinate mapping, schema-typed API client.
-- **Synthetic round-trip benchmark (`tests/eval/`), model-free and CI-able:** build
-  fixture rooms with known dimensions and furniture, render "photos" from known cameras
-  (several heights, focal lengths, clutter on/off), run `auto` and `auto` + fixture
-  annotations, and score focal error, camera-height error, floor-polygon IoU,
-  ceiling-height error, opening count/position error, object position/size error, and
-  `fit` residual before/after. `REPORT.md` is regenerated by the test and is the yardstick
-  for every algorithm change, and for Haiku vs Sonnet when a person runs the Claude tier.
-- **CI:** GitHub Actions: `uv sync`, pytest; download the Blender LTS tarball and run the
-  Blender tests; `npm ci && npm test` for the annotator.
-- **Acceptance (end of M5):** one real interior photo → `N-room.blend` + GLB + overlay +
-  preview with no model and no network via `auto`, `build`, `fit`, `export` in under 3
-  minutes on this host, the overlay visibly aligned to the walls; the same photo → the same
-  files via Claude Code with at most one confirmation.
+```
+uv run pytest tests/unit                 # 150+ host tests, ~10 s, no Blender needed
+uv run pytest tests/blender              # needs Blender: builds, exports, projection, bridge
+uv run pytest tests/ml                   # needs room_gen[ml] + cached weights (and Blender)
+uv run pytest tests/eval                 # slow quality gates on rendered rooms
+uv run python -m tests.eval.benchmark    # regenerates tests/eval/REPORT.md (4 scenes x 3 modes)
+cd annotator && npm test && npm run build
+```
+
+- **Unit**: indexed names, JSON I/O, merge patch, config, staging, camera model, coordinate
+  conversions, shell geometry, contracts (valid and invalid), primitives closed/outward,
+  every archetype at three sizes, recipe auto-fit, scene.json conventions, calibration on
+  synthetic rooms (focal < 2 %, rotation < 0.5°), manual calibration, metric scale cues,
+  layout, openings, box fit, masks/colours, texture rectification, lighting, CLI and API.
+- **Blender**: probe, fixture build with every export re-imported, all 35 archetypes built
+  within 10 % of their bbox, emissive markers land within 0.6 px of `PinholeCamera` (with lens
+  shift), bridge reproduces image-blaster's transforms.
+- **Benchmark** (`tests/eval/REPORT.md`): Blender renders of four rooms with known geometry,
+  three modes (`auto` lines only, `annotated` with ground-truth boxes standing in for a person
+  or Claude, `ml`). Quality gates in `tests/eval/test_benchmark.py`.
+- **Annotator**: 89 vitest tests (transforms, reducer/undo, box normalisation, API errors,
+  schema/type consistency); `npm run gen:types -- --check` fails when schemas change.
 
 ## 13. Milestones (Spec) — model-free first
 
-- **M0 scaffold:** `pyproject.toml` + `uv`, package skeleton, pydantic models → schemas,
-  `probe`, `project`, `validate`, config, hooks, `settings.json`, CI, unit tests green.
-- **M1 bridge:** import a real image-blaster world → `N-room.blend` + exports.
-- **M2 build core:** shell, openings, DSL, archetypes, materials, lighting, camera,
-  placement, exporters, previews, assemble; fixture-driven.
-- **M3 vision and calibration:** `imageio`, `exif`, `lines`, `calib` (auto + manual),
-  `layout`, `objects` (grabcut), `light`, `auto`; benchmark v1 with hand-written
-  annotation fixtures.
-- **M3b local models:** `room_gen[ml]` with depth, detection, segmentation; `models`
-  command; benchmark reports with and without models.
-- **M4 annotator:** the web annotator end to end (port of image-blaster's `app/`);
-  equivalence test.
-- **M5 textures and fit:** rectified textures with inpainting,
-  analytic wireframe fit with scipy, overlays; benchmark v2.
-- **M6 Claude autofill:** skills, agents, hooks per §11; one-shot flow; Haiku vs Sonnet
-  benchmark run; README quickstart for Pro/Max users and for model-free users.
-- **M7 polish:** USD/WEBP when available, plan labels, Blender edit-in-place add-on,
-  drop-in instructions for image-blaster checkouts, optional captioning model.
+| Milestone | Status (2026-10-04) |
+|---|---|
+| M0 scaffold: package, contracts, schemas, probe, project, validate, hooks, tests | done |
+| M1 bridge from image-blaster worlds | done (tested on synthesised image-blaster worlds; no real World Labs output available) |
+| M2 build core: shell, openings, DSL, archetypes, materials, lighting, exports, previews | done |
+| M3 vision: calibration, layout, objects, scale, lighting, `auto` | done |
+| M3b local models: depth, detection, segmentation, `models` command | done |
+| M4 annotator | done (openings are axis-aligned rectangles, not VP-snapped; no mask/swatch preview) |
+| M5 photo textures and analytic fit | done |
+| M6 Claude layer: skills, agents, hooks; Haiku vs Sonnet measured | done |
+| M7 polish | partial: USD/WEBP gated by probe, plan labels, drop-in notes in README; captioning model and Blender edit-in-place add-on not done; CI workflow written but not yet run on GitHub |
 
 ## 14. Non-goals
 
@@ -677,8 +700,11 @@ reconstruction in v1 (curved walls become polyline approximations, low confidenc
 
 - **Git:** read-only git is fine. Do not commit, branch, push, tag or amend unless the user
   explicitly asks in that message. `deps/image-blaster` is a submodule; never edit inside it.
-- **No code until the user asks to start M0.** Until then, changes are limited to this file
-  and docs.
+- **Keep the suites green**: `uv run pytest tests/unit tests/blender` and the annotator's
+  `npm test` before proposing a commit; regenerate `schemas/` (`room_gen schemas`) and the
+  annotator types (`npm run gen:types`) whenever `room_gen/models.py` changes.
+- **Measure, don't guess**: changes to vision code must be checked with
+  `python -m tests.eval.benchmark` (and `tests/eval/diagnose.py` for layout failures).
 - **Python preferred for business logic.** Use another language or framework only where
   it clearly improves the result (the annotator UI is the expected case) and say why in
   the commit message.
@@ -699,17 +725,43 @@ reconstruction in v1 (curved walls become polyline approximations, low confidenc
 
 ## 16. Open questions and assumptions
 
-- "Claude Mac plan" in the original request is read as the Claude **Max** plan; the spec
-  also covers Claude Code inside the Claude desktop app on macOS.
-- **Local models (§8.12)** were approved by the user on 2026-10-04 for anything that runs
-  on typical desktop/laptop CPU and GPU resources. The Depth Anything V2 metric-indoor Small
-  card carries no licence field; the Apache-2.0 status rests on the upstream repository's
-  statement that all Small checkpoints are Apache-2.0.
-- Single-photo scale is ±15–25 % without a reference; `reference`, `known_lengths`, the
-  EXIF focal prior, and `fit` are the mitigations.
-- Auto layout assumes a Manhattan box room; the benchmark will show how often that holds.
-- Whether Haiku writes acceptable boxes/archetypes is unproven; the benchmark decides.
-- Node 18 on this host is below the Node 20 LTS the annotator docs will recommend; Vite 5
-  still runs on 18, so this is a docs note, not a blocker.
-- USD and WEBP availability vary by Blender build; both are optional outputs gated by
-  `probe`. Cycles GPU availability is irrelevant to v1 (EEVEE/Workbench only).
+- "Claude Mac plan" in the original request is read as the Claude **Max** plan; the spec also
+  covers Claude Code inside the Claude desktop app on macOS.
+- **Real photos are harder than the benchmark.** On two public-domain photos the automatic
+  path was poor: a tight sofa close-up with almost no floor or ceiling, and a cluttered room
+  where curtain hems were taken for the wall/floor line. Tier 1/2 (annotator clicks or the
+  `room-survey` agent marking floor corners and a reference length) is the intended remedy;
+  a curated set of real photos with measured ground truth would make this quantitative.
+- **The depth model's metric scale** was 25–70 % off on renders and real photos; it is
+  guarded (implausible heights rejected, σ 25 %) and object heights correct it, but a known
+  length or reference from the user remains the most reliable scale source.
+- Auto layout assumes a Manhattan box room; L-shaped rooms need annotated corners and are
+  approximated by their bounding box.
+- USD export is missing from the Ubuntu Blender 4.0 build; it is reported, not faked.
+
+
+## 17. Implementation status and measured quality (2026-10-04)
+
+Benchmark (`tests/eval/REPORT.md`, final run 2026-10-04, four rendered rooms):
+
+| Mode | Focal err | Rotation err | Camera height err | Floor IoU | Visible-wall err | Objects |
+|---|---|---|---|---|---|---|
+| `auto` (lines only, height assumed 1.5 m) | ≤ 0.55 % | ≤ 0.33° | 0–9 % | 0.73–0.86 | 0.02–0.39 m | none (no boxes) |
+| `annotated` (ground-truth boxes) | ≤ 0.55 % | ≤ 0.33° | 0–6 % | 0.77–0.89 | 0.02–0.28 m | 24/26 matched, 0.07–0.32 m |
+| `ml` (local models) | ≤ 0.83 % | ≤ 0.47° | 2–7 % | 0.77–0.85 | 0.03–0.37 m | 19/26 matched, 0.18–0.57 m |
+
+With Sonnet-drawn boxes the dining room matched the ground-truth result
+(tests/eval/CLAUDE_TIER.md). Typical run times on this host: `auto` 14–30 s (layout ≈ 10 s,
+models ≈ 10 s), `build` 3–10 s. Suites: 150 unit, 5 Blender, 4 model, 4 slow end-to-end
+tests (Python) and 106 annotator tests pass.
+
+Real-photo check (public-domain Wikimedia photos, no ground truth): on a cluttered living
+room the automatic layout took a curtain hem for the wall/floor line (room 12.9 m deep). A
+Sonnet `room-survey` run traced the hidden back/right corner as a `wall_wall` boundary line
+and a weak floor-line proxy; re-running `auto` moved the back wall onto the window wall and
+gave a 3.6 × 7.3 m room with the bookshelf against it, which is closer to the photo but not exact.
+
+Known limits: real photos (§16); doors/windows are only found by the detector or by
+annotation (no classical opening detector yet); the front wall behind the camera is always
+a guess; photo textures are re-lit in Blender, so textured surfaces render brighter than the
+photo.

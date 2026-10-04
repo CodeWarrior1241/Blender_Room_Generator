@@ -1,0 +1,19 @@
+{
+  "blender": null,
+  "blender_timeout_s": 600,
+  "working_long_side": 1024,
+  "exports": ["glb", "fbx"],
+  "render": {"engine": "eevee", "width": 960, "samples": 32, "object_previews": true, "object_preview_size": 384},
+  "fit": {"enabled": true, "max_evals": 400},
+  "texture": {"enabled": true, "size": 2048, "min_coverage": 0.05},
+  "defaults": {"camera_height_m": 1.5, "ceiling_height_m": 2.7, "wall_thickness_m": 0.12, "behind_camera_m": 1.0},
+  "ml": {
+    "mode": "auto",
+    "device": "auto",
+    "depth_model": "depth-anything/Depth-Anything-V2-Metric-Indoor-Small-hf",
+    "detect_model": "google/owlv2-base-patch16-ensemble",
+    "segment_model": "facebook/sam-vit-base",
+    "detect_threshold": 0.3,
+    "opening_threshold": 0.2
+  }
+}

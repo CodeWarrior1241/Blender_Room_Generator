@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(room-project)",
+      "Skill(room-auto)",
+      "Skill(room-survey)",
+      "Skill(room-boxes)",
+      "Skill(room-recipe)",
+      "Skill(room-build)",
+      "Skill(room-qc)",
+      "Skill(room-export)",
+      "Skill(room-bridge)",
+      "Bash(uv run room_gen:*)",
+      "Bash(.venv/bin/room_gen:*)",
+      "Bash(room_gen:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {"hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/setup-check.sh"}]}
+    ],
+    "UserPromptSubmit": [
+      {"hooks": [{"type": "command", "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/input-check.sh"}]}
+    ]
+  }
+}

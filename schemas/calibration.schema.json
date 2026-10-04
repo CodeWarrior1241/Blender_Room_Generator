@@ -1,0 +1,288 @@
+{
+  "$defs": {
+    "Provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "by": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "human",
+            "model",
+            "fit"
+          ],
+          "title": "By",
+          "type": "string"
+        },
+        "confidence": {
+          "default": 0.5,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Confidence",
+          "type": "number"
+        },
+        "tool": {
+          "default": "",
+          "title": "Tool",
+          "type": "string"
+        }
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "VanishingPoint": {
+      "additionalProperties": false,
+      "properties": {
+        "axis": {
+          "enum": [
+            "x",
+            "y",
+            "z"
+          ],
+          "title": "Axis",
+          "type": "string"
+        },
+        "direction_cam": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Direction Cam",
+          "type": "array"
+        },
+        "inliers": {
+          "default": 0,
+          "title": "Inliers",
+          "type": "integer"
+        },
+        "point": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Point",
+          "type": "array"
+        },
+        "support_px": {
+          "default": 0.0,
+          "title": "Support Px",
+          "type": "number"
+        }
+      },
+      "required": [
+        "axis",
+        "point",
+        "direction_cam"
+      ],
+      "title": "VanishingPoint",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "R": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "type": "array"
+        },
+        {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "type": "array"
+        },
+        {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "type": "array"
+        }
+      ],
+      "title": "R",
+      "type": "array"
+    },
+    "camera_height_m": {
+      "exclusiveMinimum": 0.0,
+      "title": "Camera Height M",
+      "type": "number"
+    },
+    "camera_position": {
+      "maxItems": 3,
+      "minItems": 3,
+      "prefixItems": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "number"
+        }
+      ],
+      "title": "Camera Position",
+      "type": "array"
+    },
+    "cx": {
+      "title": "Cx",
+      "type": "number"
+    },
+    "cy": {
+      "title": "Cy",
+      "type": "number"
+    },
+    "focal_source": {
+      "default": "",
+      "title": "Focal Source",
+      "type": "string"
+    },
+    "fx": {
+      "exclusiveMinimum": 0.0,
+      "title": "Fx",
+      "type": "number"
+    },
+    "fy": {
+      "exclusiveMinimum": 0.0,
+      "title": "Fy",
+      "type": "number"
+    },
+    "hfov_deg": {
+      "default": 0.0,
+      "title": "Hfov Deg",
+      "type": "number"
+    },
+    "image": {
+      "title": "Image",
+      "type": "string"
+    },
+    "image_size": {
+      "maxItems": 2,
+      "minItems": 2,
+      "prefixItems": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "integer"
+        }
+      ],
+      "title": "Image Size",
+      "type": "array"
+    },
+    "method": {
+      "default": "auto-vp",
+      "enum": [
+        "auto-vp",
+        "manual-vp",
+        "manual-vp+auto-refine",
+        "prior"
+      ],
+      "title": "Method",
+      "type": "string"
+    },
+    "notes": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Notes",
+      "type": "array"
+    },
+    "provenance": {
+      "$ref": "#/$defs/Provenance"
+    },
+    "residual_deg": {
+      "default": 0.0,
+      "title": "Residual Deg",
+      "type": "number"
+    },
+    "scale_source": {
+      "default": "",
+      "title": "Scale Source",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "vanishing_points": {
+      "items": {
+        "$ref": "#/$defs/VanishingPoint"
+      },
+      "title": "Vanishing Points",
+      "type": "array"
+    },
+    "world": {
+      "title": "World",
+      "type": "string"
+    }
+  },
+  "required": [
+    "world",
+    "image",
+    "image_size",
+    "fx",
+    "fy",
+    "cx",
+    "cy",
+    "R",
+    "camera_position",
+    "camera_height_m"
+  ],
+  "title": "Calibration",
+  "type": "object"
+}

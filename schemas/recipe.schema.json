@@ -1,0 +1,555 @@
+{
+  "$defs": {
+    "ArraySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "maximum": 64,
+          "minimum": 1,
+          "title": "Count",
+          "type": "integer"
+        },
+        "offset": {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Offset",
+          "type": "array"
+        }
+      },
+      "required": [
+        "count",
+        "offset"
+      ],
+      "title": "ArraySpec",
+      "type": "object"
+    },
+    "BevelSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "segments": {
+          "default": 2,
+          "maximum": 8,
+          "minimum": 1,
+          "title": "Segments",
+          "type": "integer"
+        },
+        "width": {
+          "exclusiveMinimum": 0.0,
+          "title": "Width",
+          "type": "number"
+        }
+      },
+      "required": [
+        "width"
+      ],
+      "title": "BevelSpec",
+      "type": "object"
+    },
+    "Material": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "default": 1.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Alpha",
+          "type": "number"
+        },
+        "base_color": {
+          "default": "#cccccc",
+          "pattern": "^#[0-9a-fA-F]{6}$",
+          "title": "Base Color",
+          "type": "string"
+        },
+        "emission": {
+          "anyOf": [
+            {
+              "pattern": "^#[0-9a-fA-F]{6}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Emission"
+        },
+        "emission_strength": {
+          "default": 0.0,
+          "minimum": 0.0,
+          "title": "Emission Strength",
+          "type": "number"
+        },
+        "image": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Image"
+        },
+        "metallic": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Metallic",
+          "type": "number"
+        },
+        "procedural": {
+          "anyOf": [
+            {
+              "enum": [
+                "wood",
+                "tile",
+                "fabric",
+                "noise",
+                "brick"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Procedural"
+        },
+        "roughness": {
+          "default": 0.6,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Roughness",
+          "type": "number"
+        },
+        "scale": {
+          "default": 1.0,
+          "exclusiveMinimum": 0.0,
+          "title": "Scale",
+          "type": "number"
+        },
+        "transmission": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Transmission",
+          "type": "number"
+        }
+      },
+      "title": "Material",
+      "type": "object"
+    },
+    "Part": {
+      "additionalProperties": false,
+      "properties": {
+        "array": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ArraySpec"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "bevel": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BevelSpec"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "height": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Height"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "material": {
+          "title": "Material",
+          "type": "string"
+        },
+        "mirror": {
+          "anyOf": [
+            {
+              "enum": [
+                "x",
+                "y",
+                "xy"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Mirror"
+        },
+        "polygon": {
+          "anyOf": [
+            {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Polygon"
+        },
+        "position": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Position",
+          "type": "array"
+        },
+        "primitive": {
+          "enum": [
+            "box",
+            "cylinder",
+            "cone",
+            "sphere",
+            "torus",
+            "plane",
+            "prism",
+            "lathe",
+            "tube"
+          ],
+          "title": "Primitive",
+          "type": "string"
+        },
+        "profile": {
+          "anyOf": [
+            {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Profile"
+        },
+        "radius": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radius"
+        },
+        "radius2": {
+          "anyOf": [
+            {
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Radius2"
+        },
+        "rotation": {
+          "default": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Rotation",
+          "type": "array"
+        },
+        "scale": {
+          "default": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "title": "Scale",
+          "type": "array"
+        },
+        "segments": {
+          "default": 24,
+          "maximum": 128,
+          "minimum": 3,
+          "title": "Segments",
+          "type": "integer"
+        },
+        "size": {
+          "anyOf": [
+            {
+              "maxItems": 3,
+              "minItems": 3,
+              "prefixItems": [
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                },
+                {
+                  "type": "number"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Size"
+        }
+      },
+      "required": [
+        "id",
+        "primitive",
+        "material"
+      ],
+      "title": "Part",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "archetype": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Archetype"
+    },
+    "bbox_m": {
+      "anyOf": [
+        {
+          "maxItems": 3,
+          "minItems": 3,
+          "prefixItems": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            },
+            {
+              "type": "number"
+            }
+          ],
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Bbox M"
+    },
+    "collision": {
+      "default": "box",
+      "enum": [
+        "box",
+        "convex",
+        "mesh"
+      ],
+      "title": "Collision",
+      "type": "string"
+    },
+    "materials": {
+      "additionalProperties": {
+        "$ref": "#/$defs/Material"
+      },
+      "title": "Materials",
+      "type": "object"
+    },
+    "modifiers": {
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "additionalProperties": true,
+            "type": "object"
+          }
+        ]
+      },
+      "title": "Modifiers",
+      "type": "array"
+    },
+    "notes": {
+      "default": "",
+      "title": "Notes",
+      "type": "string"
+    },
+    "object": {
+      "title": "Object",
+      "type": "string"
+    },
+    "origin": {
+      "default": "bottom_center",
+      "enum": [
+        "bottom_center",
+        "center"
+      ],
+      "title": "Origin",
+      "type": "string"
+    },
+    "params": {
+      "additionalProperties": true,
+      "title": "Params",
+      "type": "object"
+    },
+    "parts": {
+      "items": {
+        "$ref": "#/$defs/Part"
+      },
+      "title": "Parts",
+      "type": "array"
+    },
+    "provenance": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "title": "Provenance",
+      "type": "object"
+    },
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "script": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Script"
+    },
+    "world": {
+      "default": "",
+      "title": "World",
+      "type": "string"
+    }
+  },
+  "required": [
+    "object"
+  ],
+  "title": "Recipe",
+  "type": "object"
+}

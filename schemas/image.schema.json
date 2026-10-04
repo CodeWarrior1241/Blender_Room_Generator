@@ -1,0 +1,138 @@
+{
+  "$defs": {
+    "ImageObject": {
+      "additionalProperties": true,
+      "properties": {
+        "count_estimate": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Count Estimate"
+        },
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "generate_as_3d_object": {
+          "default": true,
+          "title": "Generate As 3D Object",
+          "type": "boolean"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "materials": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Materials",
+          "type": "array"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "source_images": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Images",
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "ImageObject",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "ambient_sound": {
+      "default": "",
+      "title": "Ambient Sound",
+      "type": "string"
+    },
+    "atmosphere": {
+      "default": "",
+      "title": "Atmosphere",
+      "type": "string"
+    },
+    "environment": {
+      "default": "",
+      "title": "Environment",
+      "type": "string"
+    },
+    "lighting": {
+      "default": "",
+      "title": "Lighting",
+      "type": "string"
+    },
+    "literal_description": {
+      "default": "",
+      "title": "Literal Description",
+      "type": "string"
+    },
+    "objects": {
+      "items": {
+        "$ref": "#/$defs/ImageObject"
+      },
+      "title": "Objects",
+      "type": "array"
+    },
+    "scene_name": {
+      "default": "",
+      "title": "Scene Name",
+      "type": "string"
+    },
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "short_caption": {
+      "default": "",
+      "title": "Short Caption",
+      "type": "string"
+    },
+    "source_images": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Source Images",
+      "type": "array"
+    },
+    "visual_style": {
+      "default": "",
+      "title": "Visual Style",
+      "type": "string"
+    },
+    "world": {
+      "title": "World",
+      "type": "string"
+    }
+  },
+  "required": [
+    "world"
+  ],
+  "title": "ImageAnalysis",
+  "type": "object"
+}

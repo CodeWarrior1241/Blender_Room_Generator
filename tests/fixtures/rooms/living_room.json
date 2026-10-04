@@ -1,0 +1,237 @@
+{
+  "schema_version": 1,
+  "world": "fixture-living-room",
+  "scale": {
+    "reference": "fixture ground truth",
+    "confidence": 1.0
+  },
+  "shell": {
+    "floor_polygon": [
+      [
+        -2.5,
+        -3.0
+      ],
+      [
+        2.5,
+        -3.0
+      ],
+      [
+        2.5,
+        3.0
+      ],
+      [
+        -2.5,
+        3.0
+      ]
+    ],
+    "ceiling_height": 2.7,
+    "wall_thickness": 0.12,
+    "walls": [
+      {
+        "edge": 0,
+        "material": "wall_paint"
+      },
+      {
+        "edge": 1,
+        "material": "wall_paint",
+        "openings": [
+          {
+            "kind": "window",
+            "offset": 2.2,
+            "width": 1.4,
+            "height": 1.3,
+            "sill": 0.85
+          }
+        ]
+      },
+      {
+        "edge": 2,
+        "material": "accent_wall",
+        "openings": [
+          {
+            "kind": "window",
+            "offset": 1.0,
+            "width": 1.2,
+            "height": 1.4,
+            "sill": 0.8
+          }
+        ]
+      },
+      {
+        "edge": 3,
+        "material": "wall_paint",
+        "openings": [
+          {
+            "kind": "door",
+            "offset": 4.2,
+            "width": 0.9,
+            "height": 2.05,
+            "sill": 0.0
+          }
+        ]
+      }
+    ],
+    "floor": {
+      "material": "oak_floor"
+    },
+    "ceiling": {
+      "material": "ceiling_white"
+    },
+    "trim": {
+      "baseboard_height": 0.1,
+      "crown": false
+    },
+    "provenance": {
+      "by": "human",
+      "tool": "fixture",
+      "confidence": 1.0
+    }
+  },
+  "materials": {
+    "wall_paint": {
+      "base_color": "#e8e4dc",
+      "roughness": 0.9
+    },
+    "accent_wall": {
+      "base_color": "#9fb0a2",
+      "roughness": 0.9
+    },
+    "oak_floor": {
+      "base_color": "#a9805a",
+      "roughness": 0.5,
+      "procedural": "wood",
+      "scale": 1.2
+    },
+    "ceiling_white": {
+      "base_color": "#f4f4f2",
+      "roughness": 0.95
+    }
+  },
+  "lighting": {
+    "sun": {
+      "azimuth": 120,
+      "elevation": 30,
+      "strength": 3.0,
+      "color": "#fff1dc"
+    },
+    "sky": {
+      "strength": 0.6,
+      "color": "#cfd9e6"
+    },
+    "provenance": {
+      "by": "human",
+      "tool": "fixture",
+      "confidence": 1.0
+    }
+  },
+  "camera": {
+    "position": [
+      -1.6,
+      -2.6,
+      1.45
+    ],
+    "R": [
+      [
+        0.865426,
+        -0.501036,
+        0.0
+      ],
+      [
+        -0.062273,
+        -0.107562,
+        -0.992246
+      ],
+      [
+        0.497151,
+        0.858716,
+        -0.124288
+      ]
+    ],
+    "fx": 900.0,
+    "fy": 900.0,
+    "cx": 640.0,
+    "cy": 480.0,
+    "width": 1280,
+    "height": 960,
+    "provenance": {
+      "by": "human",
+      "tool": "fixture",
+      "confidence": 1.0
+    }
+  },
+  "placements": [
+    {
+      "object": "sofa",
+      "position": [
+        0.0,
+        2.45,
+        0.0
+      ],
+      "yaw": 0,
+      "support": "floor"
+    },
+    {
+      "object": "coffee-table",
+      "position": [
+        0.0,
+        1.2,
+        0.0
+      ],
+      "yaw": 0,
+      "support": "floor"
+    },
+    {
+      "object": "armchair",
+      "position": [
+        -1.6,
+        1.0,
+        0.0
+      ],
+      "yaw": 100,
+      "support": "floor"
+    },
+    {
+      "object": "bookshelf",
+      "position": [
+        2.33,
+        0.0,
+        0.0
+      ],
+      "yaw": -90,
+      "support": "floor"
+    },
+    {
+      "object": "floor-lamp",
+      "position": [
+        1.7,
+        2.6,
+        0.0
+      ],
+      "yaw": 0,
+      "support": "floor"
+    },
+    {
+      "object": "plant",
+      "position": [
+        -2.1,
+        2.6,
+        0.0
+      ],
+      "yaw": 0,
+      "support": "floor"
+    },
+    {
+      "object": "rug",
+      "position": [
+        0.0,
+        1.4,
+        0.0
+      ],
+      "yaw": 0,
+      "support": "floor"
+    }
+  ],
+  "notes": [
+    "hand-written fixture with known dimensions"
+  ]
+}

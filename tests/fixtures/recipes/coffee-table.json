@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "object": "coffee-table",
+  "archetype": "coffee_table",
+  "params": {
+    "width": 1.1,
+    "depth": 0.6,
+    "height": 0.42
+  },
+  "materials": {}
+}

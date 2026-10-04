@@ -1,0 +1,93 @@
+{
+  "$defs": {
+    "ObjectIdentity": {
+      "additionalProperties": true,
+      "properties": {
+        "description": {
+          "default": "",
+          "title": "Description",
+          "type": "string"
+        },
+        "evidence": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "title": "Evidence",
+          "type": "array"
+        },
+        "generate_as_3d_object": {
+          "default": true,
+          "title": "Generate As 3D Object",
+          "type": "boolean"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "materials": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Materials",
+          "type": "array"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "source_images": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Images",
+          "type": "array"
+        },
+        "working_dir": {
+          "default": "",
+          "title": "Working Dir",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name"
+      ],
+      "title": "ObjectIdentity",
+      "type": "object"
+    }
+  },
+  "additionalProperties": true,
+  "properties": {
+    "object": {
+      "$ref": "#/$defs/ObjectIdentity"
+    },
+    "schema_version": {
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "updated_at": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Updated At"
+    },
+    "world": {
+      "title": "World",
+      "type": "string"
+    }
+  },
+  "required": [
+    "world",
+    "object"
+  ],
+  "title": "ObjectFile",
+  "type": "object"
+}

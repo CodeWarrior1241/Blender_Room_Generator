@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "object": "rug",
+  "archetype": "rug",
+  "params": {
+    "width": 2.4,
+    "depth": 1.6,
+    "height": 0.012
+  },
+  "materials": {
+    "rug": {
+      "base_color": "#8c5a4a",
+      "procedural": "fabric"
+    }
+  }
+}

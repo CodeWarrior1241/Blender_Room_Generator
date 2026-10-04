@@ -218,3 +218,21 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# --- Blender_Room_Generator ---
+# generated worlds and staged photos stay local (fixtures live under tests/)
+worlds/*
+!worlds/.gitkeep
+input/*
+!input/.gitkeep
+# annotator build output and dependencies
+annotator/node_modules/
+annotator/dist/
+# Blender autosaves
+*.blend1
+*.blend@
+# scratch output of tests and the benchmark
+tests/eval/out/
+.pytest_cache/
+# the Python template above ignores every lib/ directory; the annotator keeps source there
+!annotator/src/lib/

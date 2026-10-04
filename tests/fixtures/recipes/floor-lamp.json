@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "object": "floor-lamp",
+  "archetype": "floor_lamp",
+  "params": {
+    "width": 0.4,
+    "depth": 0.4,
+    "height": 1.6
+  },
+  "materials": {}
+}
